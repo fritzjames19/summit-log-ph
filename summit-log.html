@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Summit Log · Philippine Mountain Badges</title>
+<style>
+/* Google Fonts import removed — this sandbox restricts external network calls at load time, which was blocking the page from rendering. Font stacks below already fall back to system sans-serif/monospace fonts safely. */
+
+:root{
+  --bg: #202b21;
+  --bg-raised: #263323;
+  --canvas: #f2e9d0;
+  --canvas-dim: #e8dcb8;
+  --ink: #2a2f22;
+  --ink-soft: #5b5c47;
+  --thread: #7c6a3f;
+  --moss: #6b8f5c;
+  --moss-d: #35401e;
+  --teal: #4f8f81;
+  --teal-d: #1e3730;
+  --gold: #c9a227;
+  --gold-d: #4a3a0c;
+  --amber: #c2791f;
+  --amber-d: #4a2c07;
+  --rust: #b5502e;
+  --rust-d: #481f10;
+  --brick: #8b3a3a;
+  --brick-d: #3a1414;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  background: var(--bg);
+  color: var(--canvas);
+  font-family:'Inter', sans-serif;
+  overflow-x:hidden;
+}
+.wrap{max-width:980px;margin:0 auto;padding:28px 20px 80px;}
+h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.03em; margin:0;}
+.mono{font-family:'JetBrains Mono', monospace;}
+.topbar{display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:20px; border-bottom:1px solid rgba(242,233,208,0.18); padding-bottom:14px;}
+.brand{font-size:22px; font-weight:700; color:var(--canvas);}
+.brand span{color:var(--rust);}
+.tabs{display:flex; gap:6px;}
+.tab-btn{
+  font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.03em; font-size:13px;
+  background:transparent; color:var(--canvas-dim); border:1px solid rgba(242,233,208,0.25);
+  padding:8px 16px; cursor:pointer; border-radius:3px;
+}
+.tab-btn.active{ background:var(--canvas); color:var(--ink); border-color:var(--canvas); font-weight:600;}
+
+.hero{margin:10px 0 26px;}
+.hero-stats{display:flex; gap:28px; flex-wrap:wrap; align-items:flex-end; margin-bottom:14px;}
+.hero-num{font-family:'Oswald',sans-serif; font-size:46px; font-weight:700; color:var(--canvas); line-height:1;}
+.hero-num.hero-elev{font-size:32px;}
+.hero-num sub{font-size:18px; color:var(--canvas-dim); font-weight:500;}
+.hero-sub{font-size:13px; color:var(--canvas-dim); text-transform:uppercase; letter-spacing:0.05em;}
+.ridge-box{width:100%; overflow:hidden; border-radius:4px; background:linear-gradient(to bottom, #16351f 0%, #0f2016 100%);}
+.ridge-box svg{display:block; width:100%; height:auto;}
+.rank-note{margin-top:10px; font-size:13px; color:var(--canvas-dim);}
+.rank-note b{color:var(--gold);}
+
+.onboard{max-width:440px; margin:60px auto; background:var(--canvas); color:var(--ink); border-radius:6px; padding:32px 30px; border:1px dashed var(--thread);}
+.onboard h2{font-size:22px; margin-bottom:6px;}
+.onboard p{font-size:14px; color:var(--ink-soft); line-height:1.6; margin:0 0 18px;}
+.onboard input{
+  width:100%; padding:10px 12px; font-size:15px; font-family:'Inter',sans-serif;
+  border:1px solid var(--thread); border-radius:3px; background:#fffdf4; color:var(--ink); margin-bottom:14px;
+}
+.onboard button, .btn{
+  font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.03em; font-size:13px;
+  background:var(--rust); color:#fff2e6; border:none; padding:10px 18px; border-radius:3px; cursor:pointer; font-weight:600;
+}
+.onboard button:hover, .btn:hover{background:#9c4426;}
+.onboard .fine{font-size:11.5px; color:var(--ink-soft); margin-top:10px; line-height:1.5;}
+
+.namebar{display:flex; align-items:center; gap:10px; font-size:13px; color:var(--canvas-dim); margin-bottom:22px;}
+.namebar a{color:var(--gold); cursor:pointer; text-decoration:underline;}
+
+.group{margin-bottom:26px;}
+.group-head{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+.group-head h3{font-size:15px; color:var(--canvas);}
+.group-head .swatch{width:11px; height:11px; border-radius:50%;}
+.group-head .count{font-size:12px; color:var(--canvas-dim);}
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(215px,1fr)); gap:14px;}
+
+.controls-row{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;}
+.controls-row input[type=text]{flex:1; min-width:180px; padding:9px 12px; font-size:14px; border:1px solid rgba(242,233,208,0.3); border-radius:3px; background:var(--bg-raised); color:var(--canvas); font-family:'Inter',sans-serif;}
+.controls-row input[type=text]::placeholder{color:var(--canvas-dim);}
+.controls-row select{padding:9px 10px; font-size:13px; border:1px solid rgba(242,233,208,0.3); border-radius:3px; background:var(--bg-raised); color:var(--canvas); font-family:'Inter',sans-serif;}
+.no-results{padding:30px 16px; text-align:center; color:var(--canvas-dim); font-size:13px;}
+
+.wall-head{margin-bottom:18px;}
+.wall-head p{font-size:13px; color:var(--canvas-dim); margin:4px 0 0;}
+.wall-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(126px,1fr)); gap:18px; background:var(--bg-raised); border-radius:8px; padding:24px; border:1px solid rgba(242,233,208,0.1);}
+.wall-badge{display:flex; flex-direction:column; align-items:center; text-align:center; gap:6px;}
+.wall-name{font-family:'Oswald',sans-serif; font-size:12.5px; font-weight:600; color:var(--canvas); line-height:1.2;}
+.wall-place{font-size:10.5px; color:var(--canvas-dim);}
+.wall-actions{display:flex; gap:10px; margin-top:12px; flex-wrap:wrap;}
+.wall-actions .toggle-btn{width:auto; padding:9px 18px; margin-top:0;}
+.toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--canvas); color:var(--ink); padding:10px 20px; border-radius:4px; font-size:13px; font-weight:600; box-shadow:0 6px 18px rgba(0,0,0,0.35); z-index:50; max-width:80vw; text-align:center;}
+.celebration{position:fixed; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:80; padding:20px;}
+.celebration-card{background:var(--canvas); color:var(--ink); padding:26px 36px; border-radius:10px; text-align:center; box-shadow:0 12px 44px rgba(0,0,0,0.45); border:2px solid var(--gold); animation:celeb-pop 0.4s ease-out;}
+.celebration-emoji{font-size:24px; margin-bottom:8px; letter-spacing:4px;}
+.celebration-title{font-family:'Oswald',sans-serif; font-size:21px; font-weight:700; letter-spacing:0.02em;}
+.celebration-sub{font-size:13px; color:var(--ink-soft); margin-top:6px;}
+@keyframes celeb-pop{ from{ transform:scale(0.7); opacity:0; } to{ transform:scale(1); opacity:1; } }
+.modal-backdrop{position:fixed; inset:0; background:rgba(15,20,15,0.6); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px;}
+.modal-box{background:var(--canvas); color:var(--ink); border-radius:6px; padding:24px; max-width:360px; width:100%; border:1px dashed var(--thread);}
+.modal-box p{font-size:14px; line-height:1.5; margin:0 0 16px;}
+.modal-box input{width:100%; padding:9px 12px; font-size:14px; border:1px solid var(--thread); border-radius:3px; background:#fffdf4; color:var(--ink); margin-bottom:16px; font-family:'Inter',sans-serif;}
+.modal-actions{display:flex; gap:10px; justify-content:flex-end;}
+.modal-actions .btn{padding:8px 16px;}
+.modal-actions .toggle-btn{width:auto; padding:8px 16px; margin-top:0;}
+
+.wall-panel{background:var(--bg-raised); border-radius:8px; padding:26px 20px; background-image:repeating-linear-gradient(135deg, rgba(242,233,208,0.03) 0px, rgba(242,233,208,0.03) 1px, transparent 1px, transparent 14px);}
+.wall-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:22px 14px; justify-items:center;}
+.patch{display:flex; flex-direction:column; align-items:center; text-align:center; cursor:default; transition:transform 0.15s ease;}
+.patch:hover{transform:rotate(0deg) scale(1.06);}
+.patch-name{font-family:'Oswald',sans-serif; font-size:12px; font-weight:600; color:var(--canvas); margin-top:6px; line-height:1.25;}
+.patch-sub{font-size:10.5px; color:var(--canvas-dim); margin-top:2px;}
+
+.card{
+  position:relative; background:var(--canvas); color:var(--ink); border-radius:6px;
+  border:1.5px dashed var(--thread); padding:14px 14px 12px; overflow:hidden;
+  transition: transform 0.15s ease;
+}
+.card.done{background:var(--canvas-dim);}
+.card:hover{transform:translateY(-2px);}
+.card-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+.peak-icon{flex-shrink:0; opacity:0.85;}
+.card-name{font-family:'Oswald',sans-serif; font-size:15.5px; font-weight:600; line-height:1.2; margin:0;}
+.card-place{font-size:11.5px; color:var(--ink-soft); font-style:italic; margin:3px 0 10px;}
+.card-bottom{display:flex; justify-content:space-between; align-items:center;}
+.masl{font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:600;}
+.masl small{font-size:10px; font-weight:400; color:var(--ink-soft);}
+.diff-pill{font-size:10px; text-transform:uppercase; letter-spacing:0.02em; padding:3px 8px; border-radius:20px; font-weight:600;}
+.toggle-btn{
+  width:100%; margin-top:10px; padding:7px 0; font-family:'Oswald',sans-serif; font-size:12px; text-transform:uppercase;
+  letter-spacing:0.03em; border-radius:3px; cursor:pointer; border:1px solid var(--thread); background:transparent; color:var(--ink); font-weight:600;
+}
+.card.done .toggle-btn{ background:var(--moss-d); color:var(--canvas); border-color:var(--moss-d); }
+.climb-date{font-size:11px; color:var(--ink-soft); margin-top:7px; text-align:center;}
+.climb-date a{color:var(--rust); text-decoration:underline; cursor:pointer;}
+.stamp{
+  position:absolute; top:8px; right:-26px; transform:rotate(28deg); background:rgba(181,80,46,0.9); color:#fff3e9;
+  font-family:'Oswald',sans-serif; font-size:10px; font-weight:700; letter-spacing:0.06em; padding:3px 30px;
+  pointer-events:none;
+}
+.timeline{background:var(--bg-raised); border-radius:8px; padding:4px 20px; border:1px solid rgba(242,233,208,0.1); margin-top:30px;}
+.timeline-row{display:grid; grid-template-columns:10px 100px 1fr auto; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid rgba(242,233,208,0.08); font-size:13px;}
+.timeline-row:last-child{border-bottom:none;}
+.timeline-dot{width:9px; height:9px; border-radius:50%;}
+.timeline-date{color:var(--canvas-dim); font-size:11.5px;}
+.timeline-name{font-weight:600; color:var(--canvas);}
+.timeline-place{color:var(--canvas-dim); font-size:11.5px; text-align:right;}
+
+.stats-grid{display:grid; grid-template-columns:1fr 1fr; gap:28px; background:var(--bg-raised); border-radius:8px; padding:22px; margin-top:10px; border:1px solid rgba(242,233,208,0.1);}
+.stats-col h4{font-family:'Oswald',sans-serif; font-size:12.5px; color:var(--canvas-dim); text-transform:uppercase; letter-spacing:0.05em; margin:0 0 12px;}
+.stat-row{display:grid; grid-template-columns:96px 1fr 96px; align-items:center; gap:10px; margin-bottom:10px;}
+.stat-label{color:var(--canvas); font-weight:600; font-size:12px;}
+.stat-bar-track{background:rgba(242,233,208,0.1); border-radius:20px; height:9px; overflow:hidden;}
+.stat-bar-fill{height:100%; border-radius:20px; transition:width 0.3s ease;}
+.stat-value{color:var(--canvas-dim); text-align:right; font-size:10.5px;}
+@media (max-width:600px){ .stats-grid{grid-template-columns:1fr;} }
+
+.rank-wrap{background:var(--bg-raised); border-radius:6px; padding:6px 0; margin-top:10px;}
+.rank-row{display:grid; grid-template-columns:40px 1fr 90px 110px; align-items:center; gap:6px; padding:10px 16px; font-size:14px; border-bottom:1px solid rgba(242,233,208,0.08);}
+.rank-row.head{color:var(--canvas-dim); font-size:11px; text-transform:uppercase; letter-spacing:0.04em; border-bottom:1px solid rgba(242,233,208,0.18);}
+.rank-row.me{background:rgba(197,151,45,0.14);}
+.rank-num{font-family:'Oswald',sans-serif; font-weight:700; color:var(--gold);}
+.rank-name{font-weight:600;}
+.rank-count, .rank-elev{font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--canvas-dim); text-align:right;}
+.empty{padding:30px 16px; text-align:center; color:var(--canvas-dim); font-size:13px;}
+
+.settings-row{margin-top:30px; display:flex; gap:14px; align-items:center; font-size:12px; color:var(--canvas-dim);}
+.settings-row a{color:var(--rust); cursor:pointer; text-decoration:underline;}
+
+.edit-link{font-size:11px; color:var(--thread); text-decoration:underline; cursor:pointer; align-self:center;}
+.card.editing{border-color:var(--rust); border-style:solid;}
+.edit-field{margin-bottom:8px;}
+.edit-field label{display:block; font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin-bottom:3px;}
+.edit-field input, .edit-field select{width:100%; padding:6px 8px; font-size:13px; border:1px solid var(--thread); border-radius:3px; background:#fffdf4; color:var(--ink); font-family:'Inter',sans-serif;}
+.edit-actions{display:flex; gap:8px; margin-top:6px;}
+.edit-actions .btn{flex:1; padding:7px 0; font-size:11px;}
+.edit-actions .toggle-btn{flex:1; margin-top:0;}
+.edit-note{font-size:12px; color:var(--canvas-dim); margin:-4px 0 18px;}
+
+@media (max-width: 640px){
+  .wrap{padding:18px 14px 60px;}
+  .topbar{flex-direction:column; align-items:flex-start; gap:12px; margin-bottom:16px;}
+  .brand{font-size:18px;}
+  .tabs{width:100%; gap:6px;}
+  .tab-btn{flex:1; padding:9px 6px; font-size:11.5px; text-align:center;}
+
+  .hero-stats{gap:20px;}
+  .hero-num{font-size:32px;}
+  .hero-num.hero-elev{font-size:24px;}
+  .hero-num sub{font-size:14px;}
+
+  .namebar{flex-wrap:wrap; margin-bottom:16px;}
+
+  .controls-row{flex-direction:column; align-items:stretch;}
+  .controls-row input[type=text], .controls-row select{width:100%; min-width:0;}
+
+  .grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px;}
+  .card{padding:12px 12px 10px;}
+  .card-name{font-size:14px;}
+  .masl{font-size:14px;}
+
+  .wall-grid{grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:14px; padding:16px;}
+
+  .stats-grid{padding:16px 14px; gap:20px;}
+  .stat-row{grid-template-columns:64px 1fr 76px; gap:6px;}
+  .stat-label{font-size:10.5px;}
+  .stat-value{font-size:9.5px;}
+
+  .timeline{padding:2px 14px;}
+  .timeline-row{grid-template-columns:8px 1fr auto; grid-template-areas:"dot date place" "dot name name"; row-gap:2px; padding:10px 0;}
+  .timeline-dot{grid-area:dot;}
+  .timeline-date{grid-area:date; font-size:10.5px;}
+  .timeline-name{grid-area:name; font-size:12.5px;}
+  .timeline-place{grid-area:place; font-size:10.5px;}
+
+  .rank-row{grid-template-columns:26px 1fr 56px 74px; gap:6px; padding:9px 12px; font-size:12.5px;}
+  .rank-count, .rank-elev{font-size:11px;}
+
+  .onboard{margin:34px auto; padding:26px 20px;}
+
+  .modal-box{padding:20px;}
+  .modal-actions{flex-direction:column-reverse;}
+  .modal-actions .btn, .modal-actions .toggle-btn{width:100%;}
+
+  .celebration-card{padding:20px 22px;}
+  .celebration-title{font-size:17px;}
+
+  .edit-actions{flex-direction:column;}
+  .edit-actions .btn, .edit-actions .toggle-btn{flex:none; width:100%;}
+
+  .wall-actions{flex-direction:column; align-items:stretch;}
+  .wall-actions .toggle-btn, .wall-actions .btn{width:100%;}
+
+  .settings-row{flex-wrap:wrap;}
+}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+let MOUNTAINS = [
+["Mt. Apo","Davao del Sur / North Cotabato","Difficult",2956,"2956"],
+["Mt. Pulag","Benguet / nearby provinces","Moderate to difficult",2922,"2922"],
+["Mt. Tabayoc","Benguet","Difficult",2842,"2842"],
+["Mt. Timbac","Benguet","Moderate",2717,"2717"],
+["Mt. Halcon","Mindoro","Very difficult",2586,"2586"],
+["Mt. Kitanglad","Bukidnon","Difficult",2899,"2899+"],
+["Mt. Kalatungan","Bukidnon","Difficult",2880,"2880+"],
+["Mt. Kanlaon","Negros Occidental / Negros Oriental","Difficult",2465,"2465"],
+["Mt. Banahaw","Quezon / Laguna","Difficult",2158,"2158"],
+["Mt. Ugo","Benguet / Nueva Vizcaya area","Moderate to difficult",2150,"2150"],
+["Mt. Mantalingahan","Palawan","Difficult",2086,"2086"],
+["Mt. Guiting-Guiting","Romblon","Very difficult",2058,"2058"],
+["Mt. Lobo","Benguet","Moderate to difficult",2000,"2000+"],
+["Mt. Tenglawan","Benguet","Moderate",1940,"1940"],
+["Mt. Talinis","Negros Oriental","Moderate to difficult",1903,"1903+"],
+["Mt. Ulap","Itogon, Benguet","Moderate",1846,"1846"],
+["Mt. Hamiguitan","Davao Oriental","Moderate to difficult",1620,"1620"],
+["Mt. Pinatubo","Zambales / Tarlac / Pampanga","Moderate",1486,"1486"],
+["Mt. Cristobal","Quezon","Moderate to difficult",1470,"1470"],
+["Mt. Tarak","Mariveles, Bataan","Moderate to difficult",1130,"1130"],
+["Mt. Makiling","Laguna / Batangas","Moderate to difficult",1090,"1090+"],
+["Mt. Arayat","Pampanga","Moderate to difficult",1026,"1026"],
+["Mt. Malipunyo","Batangas","Moderate",1005,"1005"],
+["Mt. Lubog","Rizal","Beginner to moderate",955,"955"],
+["Mt. Maculot","Cuenca, Batangas","Beginner to moderate",930,"930"],
+["Mt. Batulao","Nasugbu, Batangas","Beginner",811,"811"],
+["Mt. Kalisungan","Laguna","Beginner to moderate",760,"760"],
+["Mt. Manabu","Batangas","Beginner to moderate",760,"760"],
+["Mt. Daraitan","Tanay, Rizal","Beginner to moderate",739,"739"],
+["Mt. Damas","Tarlac","Beginner to moderate",685,"685"],
+["Mt. Daguldol","Batangas","Beginner to moderate",670,"670"],
+["Mt. Pico de Loro","Cavite / Batangas","Beginner to moderate",664,"664"],
+["Mt. Talamitam","Nasugbu, Batangas","Beginner",630,"630"],
+["Mt. Tibig","Batangas","Beginner to moderate",563,"563+"],
+["Mt. Samat","Bataan","Beginner",550,"550"],
+["Mt. Gulugod Baboy","Mabini, Batangas","Beginner",525,"525"],
+["Mt. Hapunang Banoi","Rizal","Beginner to moderate",517,"517"],
+["Mt. Pundaquit","Zambales","Beginner to moderate",464,"464"],
+["Mt. Mabilog","Laguna","Beginner to moderate",441,"441"],
+["Mt. Pamitinan","Rodriguez, Rizal","Beginner to moderate",426,"426"],
+["Mt. Binacayan","Rodriguez, Rizal","Beginner to moderate",424,"424"],
+["Mt. Marami","Cavite","Moderate",405,"405"],
+["Mt. Romelo","Laguna","Beginner to moderate",350,"300-400"],
+["Mt. Buntot Palos","Laguna","Beginner to moderate",350,"300-400"],
+["Mt. Manalmon","San Miguel, Bulacan","Beginner",196,"196"],
+["Mt. Dulang-Dulang","Bukidnon","Difficult",2938,"2938"],
+["Mt. Mariglem","Zambales","Moderate",1427,"1427"],
+["Mt. Isarog","Camarines Sur","Difficult",1966,"1966"],
+["Mt. Malinao","Albay","Difficult",1548,"1548"],
+["Mt. Masaraga","Albay","Difficult",1328,"1328"],
+["Mt. Mayon","Albay","Difficult",2462,"2462"],
+["Mt. Hibok-Hibok","Camiguin","Difficult",1332,"1332"],
+["Mt. Sto. Tomas","Benguet","Moderate",2256,"2256"],
+["Mt. Mariveles","Bataan","Moderate to difficult",1388,"1388"],
+["Mt. Cagua","Cagayan","Difficult",1133,"1133"],
+["Mt. Labo","Camarines Norte","Moderate to difficult",1544,"1544"],
+["Mt. Bernacci","Camarines Norte","Moderate",800,"800+"],
+["Mt. Binutasan","Quezon","Moderate",700,"700+"],
+["Mt. Baturay","Sorsogon","Moderate to difficult",300,"300+"],
+["Mt. Bulusan","Sorsogon","Difficult",1565,"1565"],
+["Mt. Panay","Bicol Region","Moderate to difficult",1000,"1000+"],
+["Mt. Naupa","Cebu","Beginner to moderate",500,"500+"],
+["Mt. Manunggal","Cebu","Beginner to moderate",980,"980"],
+["Osmeña Peak","Cebu","Beginner",1013,"1013"],
+["Mt. Lanaya","Cebu","Moderate to difficult",750,"750+"],
+["Mt. Mandalagan","Negros Occidental","Moderate to difficult",1880,"1880+"],
+["Mt. Silay","Negros Occidental","Difficult",1599,"1599"],
+["Mt. Madja-as","Antique","Difficult",2117,"2117"],
+["Mt. Nangtud","Antique / Iloilo","Very difficult",2074,"2074"],
+["Mt. Baloy","Iloilo / Antique","Difficult",1958,"1958"],
+["Mt. Lidong","Aklan","Moderate",700,"700+"],
+["Mt. Igmatongtong","Iloilo","Beginner to moderate",1000,"1000+"],
+["Mt. Napulak","Iloilo","Moderate",1200,"1200+"],
+["Mt. Dagat-dagatan","Samar","Moderate",800,"800+"],
+["Mt. Capoto-an","Samar","Moderate to difficult",900,"900+"],
+["Mt. Huraw","Leyte","Beginner to moderate",1000,"1000+"],
+["Mt. Amindueuen","Leyte","Difficult",1200,"1200+"],
+["Mt. Pangasugan","Leyte","Difficult",1150,"1150+"],
+["Mt. Cabalantian","Siquijor","Beginner to moderate",600,"600+"],
+["Mt. Bandilaan","Siquijor","Beginner",557,"557"],
+["Mt. Malindang","Misamis Occidental","Difficult",2404,"2404"],
+["Mt. Lumot","Agusan del Sur","Moderate to difficult",1000,"1000+"],
+["Mt. Hilong-Hilong","Agusan del Sur / Agusan del Norte","Difficult",2012,"2012"],
+["Mt. Mayo","Davao Oriental","Difficult",1620,"1620+"],
+["Mt. Apayang","Kalinga","Moderate to difficult",2000,"2000+"],
+["Mt. Lantik","Ifugao / Benguet area","Moderate to difficult",1000,"1000+"],
+["Mt. Balagbag","Bulacan","Beginner to moderate",777,"777"],
+["Mt. Mogao","Benguet / Kalinga area","Moderate",1500,"1500+"],
+["Mt. Sipit Ulang","Palawan","Moderate",900,"900+"],
+["Mt. Tapulao","Zambales","Difficult",2037,"2037"],
+["Mt. Purgatory","Benguet","Difficult",1700,"1700+"],
+["Mt. Komkompol","Mountain Province","Difficult",1900,"1900+"],
+["Mt. Kalawitan","Mountain Province","Difficult",2715,"2715"],
+["Mt. Lobi","Leyte","Moderate",800,"800+"]
+].map((m,i)=>({id:"m"+i, name:m[0], place:m[1], difficulty:m[2], maslNum:m[3], maslRaw:m[4]}));
+
+function parseMaslNum(raw){
+  const cleaned = String(raw).replace(/[~\s]/g,"").replace(/(\d),(\d)/g,"$1$2");
+  const nums = (cleaned.match(/\d+/g)||[]).map(Number);
+  if(nums.length===0) return 0;
+  if(nums.length>=2) return Math.round((nums[0]+nums[1])/2);
+  return nums[0];
+}
+
+const DIFFICULTY_OPTIONS = ["Beginner","Beginner to moderate","Moderate","Moderate to difficult","Difficult","Very difficult"];
+let overrides = {};
+let customMountains = [];
+let deletedIds = new Set();
+
+const CAT = (diff)=>{
+  const d = diff.toLowerCase();
+  if(d.includes("very difficult")) return {label:"Very difficult", fill:"var(--brick)", dk:"var(--brick-d)"};
+  if(d==="difficult") return {label:"Difficult", fill:"var(--rust)", dk:"var(--rust-d)"};
+  if(d.includes("moderate to difficult")) return {label:"Moderate to difficult", fill:"var(--amber)", dk:"var(--amber-d)"};
+  if(d==="moderate") return {label:"Moderate", fill:"var(--gold)", dk:"var(--gold-d)"};
+  if(d.includes("beginner to moderate")) return {label:"Beginner to moderate", fill:"var(--teal)", dk:"var(--teal-d)"};
+  return {label:"Beginner", fill:"var(--moss)", dk:"var(--moss-d)"};
+};
+
+const GROUP_ORDER = ["Very difficult","Difficult","Moderate to difficult","Moderate","Beginner to moderate","Beginner"];
+
+const PEAK_ICON = (color)=>`<svg class="peak-icon" width="26" height="20" viewBox="0 0 26 20"><path d="M1 18L9 4L13 10L17 2L25 18Z" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 4L11 8.5L7 8.5Z" fill="${color}"/></svg>`;
+
+function hashId(s){
+  let h = 0;
+  for(let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) | 0; }
+  return Math.abs(h);
+}
+
+const ICONIC_SHAPES = {
+  "m0": { // Mt. Apo — broad, rugged, multi-shouldered massif (tallest peak, plateau summit)
+    path: "M4 46 L14 28 L20 32 L26 16 L32 22 L38 10 L44 22 L50 30 L60 46 Z"
+  },
+  "m1": { // Mt. Pulag — rolling grassland dome, "sea of clouds" summit
+    path: "M6 46 Q20 20 32 16 Q44 20 58 46 Z"
+  },
+  "m4": { // Mt. Halcon — treacherous jagged jungle spikes
+    path: "M6 46 L16 38 L20 24 L24 30 L30 10 L34 22 L40 16 L46 30 L60 46 Z"
+  },
+  "m5": { // Mt. Kitanglad — wide multi-ridge mountain range
+    path: "M4 46 L14 24 L22 30 L30 14 L38 26 L46 18 L60 46 Z"
+  },
+  "m7": { // Mt. Kanlaon — twin volcanic summit with crater dip
+    path: "M6 46 L22 16 L28 22 L32 12 L36 22 L42 16 L58 46 Z"
+  },
+  "m8": { // Mt. Banahaw — broad, sacred stratovolcano with stepped shoulders
+    path: "M6 46 L18 34 L26 14 L32 8 L38 14 L46 34 L58 46 Z"
+  },
+  "m11": { // Mt. Guiting-Guiting — serrated saw-blade ridge (the name means "saw")
+    path: "M4 46 L12 30 L16 36 L20 18 L24 30 L28 14 L32 28 L36 12 L40 26 L44 20 L48 32 L52 24 L60 46 Z"
+  },
+  "m17": { // Mt. Pinatubo — broken caldera rim, notched crater
+    path: "M6 46 L24 20 L28 26 L32 14 L36 26 L40 20 L58 46 Z"
+  },
+  "m20": { // Mt. Makiling — the legendary reclining "Maria Makiling" silhouette
+    path: "M4 46 Q10 34 18 36 Q24 38 26 30 Q28 20 34 18 Q38 17 40 22 Q44 30 52 34 Q58 37 60 46 Z"
+  },
+  "m50": { // Mt. Mayon — the near-perfect symmetric volcanic cone, with a wisp of smoke
+    path: "M8 46 L31 9 L33 9 L56 46 Z",
+    extra: `<path d="M32 9 q3 -6 0 -10 q-3 4 0 10" style="fill:none;stroke:CURRENT_DK;stroke-width:1.4;stroke-linecap:round;opacity:0.55"/>`
+  },
+  "m6": { // Mt. Kalatungan — broad Bukidnon highland massif, staggered peaks
+    path: "M4 46 L16 30 L24 34 L30 18 L36 24 L42 12 L48 24 L60 46 Z"
+  },
+  "m24": { // Mt. Maculot — "The Rockies", a flat rocky outcrop near the summit
+    path: "M6 46 L22 30 L26 32 L28 14 L34 14 L36 32 L40 30 L58 46 Z"
+  },
+  "m25": { // Mt. Batulao — the famous serrated "dragon back" ridgeline
+    path: "M4 46 L10 38 L14 42 L18 32 L22 38 L26 26 L30 34 L34 22 L38 32 L42 28 L46 36 L50 30 L60 46 Z"
+  },
+  "m31": { // Mt. Pico de Loro — the hooked "parrot's beak" monolith
+    path: "M4 46 L20 38 L26 40 L30 20 L34 24 Q38 10 42 22 L44 30 L60 46 Z"
+  },
+  "m47": { // Mt. Isarog — broad solitary forested volcanic dome
+    path: "M6 46 Q14 32 20 30 Q26 26 30 16 Q34 12 38 18 Q44 26 50 30 Q56 34 58 46 Z"
+  },
+  "m51": { // Mt. Hibok-Hibok — stubby active cone with a lava-dome summit
+    path: "M8 46 L26 20 L30 24 L32 14 L34 24 L38 20 L56 46 Z"
+  },
+  "m59": { // Mt. Bulusan — broad steaming volcanic cone
+    path: "M8 46 L24 26 L30 30 L34 16 L40 28 L44 24 L56 46 Z",
+    extra: `<path d="M34 16 q2 -5 -1 -8 q-2 3 1 8" style="fill:none;stroke:CURRENT_DK;stroke-width:1.2;stroke-linecap:round;opacity:0.5"/>`
+  },
+  "m63": { // Osmeña Peak — soft eroded limestone knolls
+    path: "M4 46 Q10 34 16 38 Q22 42 26 30 Q30 20 34 26 Q38 32 44 24 Q50 18 60 46 Z"
+  },
+  "m67": { // Mt. Madja-as — remote, rugged, densely forested multi-summit ridge
+    path: "M4 46 L14 30 L20 34 L26 18 L32 26 L38 14 L44 26 L50 20 L60 46 Z"
+  },
+  "m80": { // Mt. Malindang — broad ancient volcanic highland plateau
+    path: "M4 46 L18 32 L26 36 L32 20 L38 32 L46 28 L60 46 Z"
+  },
+  "m2": { // Mt. Tabayoc — mossy, rounded twin-bump highland dome near Pulag
+    path: "M6 46 Q16 26 24 24 Q30 18 34 22 Q40 16 46 28 Q52 34 58 46 Z"
+  },
+  "m3": { // Mt. Timbac — Benguet pine ridge, near the Kabayan mummy caves
+    path: "M8 46 L24 24 L32 30 L40 20 L56 46 Z",
+    extra: `<path d="M30 24 L34 24 L32 16 Z M31 20 L33 20 L32 14 Z" style="fill:CURRENT_DK; opacity:0.6"/>`
+  },
+  "m9": { // Mt. Ugo — long rolling ridge-traverse trail
+    path: "M4 46 L14 34 L22 38 L28 26 L34 32 L40 22 L46 30 L52 26 L60 46 Z"
+  },
+  "m10": { // Mt. Mantalingahan — Palawan's highest, dense untouched rainforest massif
+    path: "M4 46 Q14 30 22 32 Q28 20 34 18 Q40 20 46 30 Q54 36 60 46 Z"
+  },
+  "m14": { // Mt. Talinis / Cuernos de Negros — literally "the horns"
+    path: "M6 46 L20 20 L26 28 L32 14 L38 28 L44 20 L58 46 Z"
+  },
+  "m18": { // Mt. Cristobal — Banahaw's sharp, foreboding "twin"
+    path: "M6 46 L16 30 L22 34 L28 12 L32 18 L36 12 L42 34 L48 30 L58 46 Z"
+  },
+  "m21": { // Mt. Arayat — solitary twin-peaked cone rising from flat plains
+    path: "M6 46 L26 18 L30 24 L34 14 L44 30 L58 46 Z"
+  },
+  "m62": { // Mt. Manunggal — Magsaysay plane-crash memorial site
+    path: "M6 46 Q20 28 32 26 Q44 28 58 46 Z",
+    extra: `<path d="M32 26 L32 16 M28 20 L36 20" style="fill:none;stroke:CURRENT_DK;stroke-width:1.6;stroke-linecap:round;"/>`
+  },
+  "m68": { // Mt. Nangtud — remote, rarely-climbed rugged Panay massif
+    path: "M4 46 L12 32 L18 36 L24 20 L30 28 L36 16 L42 26 L48 22 L60 46 Z"
+  },
+  "m89": { // Mt. Tapulao — Zambales "High Peak," radio relay towers on the summit
+    path: "M6 46 Q18 32 28 30 Q36 26 44 32 Q52 36 58 46 Z",
+    extra: `<path d="M32 30 L32 18 M29 22 L35 22 M30 18 L34 18" style="fill:none;stroke:CURRENT_DK;stroke-width:1.3;stroke-linecap:round;"/>`
+  },
+  "m15": { // Mt. Ulap — grassy ridge walk with the famous flat-topped Gungal Rock
+    path: "M4 46 Q14 34 22 32 L26 22 L34 22 L36 30 Q46 34 60 46 Z"
+  },
+  "m16": { // Mt. Hamiguitan — UNESCO pygmy/bonsai forest on a broad ridge
+    path: "M6 46 Q20 32 32 30 Q44 32 58 46 Z",
+    extra: `<path d="M26 30 q-2 -4 1 -6 q2 2 0 5 M38 30 q2 -4 -1 -6 q-2 2 0 5" style="fill:none;stroke:CURRENT_DK;stroke-width:1.2;stroke-linecap:round;opacity:0.6"/>`
+  },
+  "m28": { // Mt. Daraitan — karst limestone cliffs above the Tinipak River
+    path: "M6 46 L14 32 L18 38 L22 24 L26 32 L30 18 L34 30 L38 26 L42 36 L46 30 L58 46 Z"
+  },
+  "m35": { // Mt. Gulugod Baboy — the "Pig's Spine," a long low coastal ridge
+    path: "M4 46 L10 40 L16 42 L22 36 L28 40 L34 34 L40 40 L46 36 L52 40 L60 46 Z"
+  },
+  "m39": { // Mt. Pamitinan — one of the twin monolithic cliffs over Wawa Gorge
+    path: "M8 46 L14 46 L18 14 L26 12 L30 44 L34 46 L58 46 Z"
+  },
+  "m40": { // Mt. Binacayan — Pamitinan's twin monolith across the gorge
+    path: "M6 46 L30 46 L34 16 L40 14 L44 44 L48 46 L58 46 Z"
+  },
+  "m45": { // Mt. Dulang-Dulang — the Philippines' second-highest peak, mossy forest massif
+    path: "M4 46 L12 26 L20 32 L28 14 L36 24 L44 18 L60 46 Z"
+  },
+  "m52": { // Mt. Sto. Tomas — Benguet peak topped with radar/telecom domes
+    path: "M8 46 Q20 30 32 28 Q44 30 56 46 Z",
+    extra: `<circle cx="26" cy="26" r="3" style="fill:CURRENT_DK; opacity:0.55"/><circle cx="38" cy="24" r="3" style="fill:CURRENT_DK; opacity:0.55"/>`
+  },
+  "m66": { // Mt. Silay — twin volcanic summit paired with Mt. Mandalagan
+    path: "M6 46 L18 22 L24 28 L30 16 L36 28 L42 22 L58 46 Z"
+  },
+  "m86": { // Mt. Balagbag — rolling hill known for its ridge-top communication tower
+    path: "M6 46 Q20 32 32 30 Q44 32 58 46 Z",
+    extra: `<path d="M32 30 L32 18 M28 18 L36 18 M32 18 L26 14 M32 18 L38 14" style="fill:none;stroke:CURRENT_DK;stroke-width:1.2;stroke-linecap:round;"/>`
+  },
+  "m19": { // Mt. Tarak — the dramatic knife-edge "Tarak Ridge"
+    path: "M6 46 L20 40 L30 16 L32 16 L42 40 L58 46 Z"
+  },
+  "m30": { // Mt. Daguldol — forested coastal hike ending near a waterfall
+    path: "M6 46 Q18 32 28 30 Q34 24 40 30 Q48 34 58 46 Z",
+    extra: `<path d="M40 30 q1 4 -1 7 q2 3 0 6" style="fill:none;stroke:CURRENT_DK;stroke-width:1.2;stroke-linecap:round;opacity:0.55"/>`
+  },
+  "m32": { // Mt. Talamitam — smooth, easy grassy dome
+    path: "M6 46 Q20 28 32 24 Q44 28 58 46 Z"
+  },
+  "m34": { // Mt. Samat — the Dambana ng Kagitingan (Shrine of Valor) memorial tower
+    path: "M8 46 Q22 34 32 32 Q42 34 54 46 Z",
+    extra: `<path d="M32 32 L32 10 M27 16 L37 16 M29 10 L32 6 L35 10" style="fill:none;stroke:CURRENT_DK;stroke-width:1.6;stroke-linecap:round;"/>`
+  },
+  "m53": { // Mt. Mariveles — Bataan's highest, remote historic massif
+    path: "M4 46 L14 28 L22 34 L28 16 L36 26 L44 20 L60 46 Z"
+  },
+  "m65": { // Mt. Mandalagan — twin volcanic complex paired with Mt. Silay
+    path: "M6 46 L20 24 L26 30 L32 18 L38 30 L44 24 L58 46 Z"
+  },
+  "m69": { // Mt. Baloy — remote, rugged Panay sibling to Madja-as and Nangtud
+    path: "M4 46 L12 34 L18 38 L24 22 L30 30 L36 18 L42 28 L48 24 L60 46 Z"
+  },
+  "m82": { // Mt. Hilong-Hilong — broad Mindanao wilderness massif
+    path: "M4 46 L16 28 L24 34 L32 16 L40 28 L48 22 L60 46 Z"
+  },
+  "m84": { // Mt. Apayang — remote Cordillera peak
+    path: "M6 46 L18 30 L26 36 L32 20 L38 32 L48 26 L58 46 Z"
+  },
+  "m92": { // Mt. Kalawitan — the Philippines' 4th-highest peak
+    path: "M4 46 L14 26 L22 32 L30 14 L38 26 L46 20 L60 46 Z"
+  },
+  "m22": { // Mt. Malipunyo — a modest peak with a ridge-top relay antenna
+    path: "M8 46 Q20 32 32 30 Q44 32 54 46 Z",
+    extra: `<path d="M32 30 L32 12 M29 20 L35 20" style="fill:none;stroke:CURRENT_DK;stroke-width:1.3;stroke-linecap:round;"/>`
+  },
+  "m29": { // Mt. Damas — a hike known for its many river crossings
+    path: "M6 46 Q18 34 28 30 Q36 26 44 32 Q52 36 58 46 Z",
+    extra: `<path d="M8 44 q6 -3 12 0 q6 3 12 0 q6 -3 12 0 q6 3 12 0" style="fill:none;stroke:CURRENT_DK;stroke-width:1;stroke-linecap:round;opacity:0.5"/>`
+  },
+  "m37": { // Mt. Pundaquit — coastal hike near Anawangin and Nagsasa coves
+    path: "M6 46 Q18 36 28 32 Q36 28 44 34 Q52 38 58 46 Z",
+    extra: `<path d="M6 44 q4 -2 8 0 q4 2 8 0" style="fill:none;stroke:CURRENT_DK;stroke-width:1.2;stroke-linecap:round;opacity:0.5"/>`
+  },
+  "m41": { // Mt. Marami — "many," true to its name: a ridge of many small summits
+    path: "M4 46 L9 40 L14 43 L19 38 L24 41 L29 36 L34 40 L39 35 L44 39 L49 34 L54 38 L60 46 Z"
+  },
+  "m44": { // Mt. Manalmon — limestone karst hill with cave openings
+    path: "M6 46 L20 30 L26 34 L32 18 L38 32 L44 28 L58 46 Z",
+    extra: `<circle cx="26" cy="36" r="3" style="fill:none;stroke:CURRENT_DK;stroke-width:1.2;opacity:0.6"/>`
+  },
+  "m54": { // Mt. Cagua — active volcano with its own crater lake
+    path: "M8 46 L26 20 L30 24 L34 14 L38 24 L42 20 L56 46 Z",
+    extra: `<ellipse cx="34" cy="20" rx="3" ry="1.6" style="fill:CURRENT_DK; opacity:0.45"/>`
+  },
+  "m64": { // Mt. Lanaya — the Kawasan Falls canyon traverse
+    path: "M6 46 Q18 34 26 30 Q30 24 34 30 Q42 34 58 46 Z",
+    extra: `<path d="M34 30 q1 5 -1 8 q2 4 -1 8" style="fill:none;stroke:CURRENT_DK;stroke-width:1.4;stroke-linecap:round;opacity:0.55"/>`
+  },
+  "m77": { // Mt. Pangasugan — a Leyte wildlife sanctuary peak
+    path: "M6 46 Q20 32 32 30 Q44 32 58 46 Z",
+    extra: `<path d="M26 22 q3 -4 6 0 q3 -4 6 0" style="fill:none;stroke:CURRENT_DK;stroke-width:1.3;stroke-linecap:round;opacity:0.6"/>`
+  },
+  "m79": { // Mt. Bandilaan — Siquijor's highest point, with its old watchtower
+    path: "M8 46 Q22 34 32 32 Q42 34 54 46 Z",
+    extra: `<path d="M32 32 L32 16 M28 20 L36 20 M29 16 L35 16 L32 12 Z" style="fill:none;stroke:CURRENT_DK;stroke-width:1.2;stroke-linecap:round;"/>`
+  },
+  "m91": { // Mt. Komkompol — remote, rugged Cordillera peak
+    path: "M6 46 L16 28 L24 34 L32 16 L40 30 L48 24 L58 46 Z"
+  },
+  "m12": { // Mt. Lobo — a modest Benguet twin peak
+    path: "M6 46 L20 26 L26 32 L32 20 L38 32 L44 26 L58 46 Z"
+  },
+  "m13": { // Mt. Tenglawan — a quiet Benguet summit
+    path: "M8 46 Q20 30 32 26 Q44 30 56 46 Z"
+  },
+  "m23": { // Mt. Lubog — "submerged," near a still reservoir
+    path: "M6 46 Q20 32 32 28 Q44 32 58 46 Z",
+    extra: `<path d="M6 44 L58 44" style="stroke:CURRENT_DK; stroke-width:1; opacity:0.35; stroke-dasharray:2,2;"/>`
+  },
+  "m36": { // Mt. Hapunang Banoi — twin peaks known for sunset views
+    path: "M6 46 L22 22 L28 28 L32 18 L36 28 L42 22 L58 46 Z",
+    extra: `<circle cx="14" cy="40" r="3" style="fill:CURRENT_DK; opacity:0.4;"/>`
+  },
+  "m42": { // Mt. Romelo — a trail known for its cascading waterfalls
+    path: "M6 46 Q18 34 26 30 Q30 24 34 30 Q42 34 58 46 Z",
+    extra: `<path d="M30 30 q1 4 -1 7 q2 3 0 6 q2 3 0 6" style="fill:none;stroke:CURRENT_DK;stroke-width:1.3;stroke-linecap:round;opacity:0.55"/>`
+  },
+  "m43": { // Mt. Buntot Palos — "eel's tail," a long sinuous ridge
+    path: "M4 46 Q14 40 20 44 Q28 48 34 38 Q40 28 48 34 Q54 38 60 46 Z"
+  },
+  "m48": { // Mt. Malinao — active volcano near geothermal steam vents
+    path: "M8 46 L24 24 L30 28 L34 16 L38 28 L44 24 L56 46 Z",
+    extra: `<path d="M22 24 q2 -4 0 -7 M34 16 q2 -4 0 -7" style="fill:none;stroke:CURRENT_DK;stroke-width:1.1;stroke-linecap:round;opacity:0.5"/>`
+  },
+  "m90": { // Mt. Purgatory — a jagged, ominously-named peak
+    path: "M4 46 L14 34 L18 40 L24 20 L28 36 L34 14 L38 36 L44 22 L48 38 L60 46 Z"
+  },
+  "m46": { // Mt. Mariglem — a modest Zambales summit
+    path: "M8 46 Q20 32 32 28 Q44 32 56 46 Z"
+  },
+  "m76": { // Mt. Amindueuen — a remote Leyte peak
+    path: "M6 46 L18 28 L26 34 L32 18 L40 30 L48 24 L58 46 Z"
+  },
+  "m26": { // Mt. Kalisungan — often paired with Mt. Manabu as a traverse
+    path: "M8 46 Q20 32 32 28 Q44 32 56 46 Z"
+  },
+  "m27": { // Mt. Manabu — Kalisungan's traverse partner
+    path: "M6 46 L20 30 L28 34 L34 24 L40 34 L48 30 L58 46 Z"
+  },
+  "m49": { // Mt. Masaraga — Mayon's quieter volcanic neighbor
+    path: "M8 46 L24 26 L30 30 L34 18 L38 30 L44 26 L56 46 Z"
+  },
+  "m55": { // Mt. Labo — a solid, broad Camarines Norte peak
+    path: "M6 46 L18 28 L26 34 L32 20 L40 32 L48 26 L58 46 Z"
+  },
+  "m73": { // Mt. Dagat-dagatan — "like the sea"
+    path: "M8 46 Q22 34 32 32 Q42 34 54 46 Z",
+    extra: `<path d="M8 42 q8 -3 16 0 q8 3 16 0 q8 -3 12 0" style="fill:none;stroke:CURRENT_DK;stroke-width:1;stroke-linecap:round;opacity:0.4;"/>`
+  },
+  "m78": { // Mt. Cabalantian — a quiet Siquijor summit
+    path: "M8 46 Q20 32 32 28 Q44 32 56 46 Z"
+  },
+  "m83": { // Mt. Mayo — a Davao Oriental ridge near Mt. Hamiguitan
+    path: "M6 46 Q18 34 28 30 Q36 26 44 32 Q52 36 58 46 Z"
+  },
+  "m87": { // Mt. Mogao — highland peak on the Benguet-Kalinga border
+    path: "M8 46 Q20 30 32 26 Q44 30 56 46 Z"
+  },
+  "m88": { // Mt. Sipit Ulang — a coastal Palawan peak
+    path: "M6 46 Q20 34 30 30 Q34 24 40 30 Q48 34 58 46 Z",
+    extra: `<path d="M8 44 q5 -2 10 0" style="fill:none;stroke:CURRENT_DK;stroke-width:1.1;stroke-linecap:round;opacity:0.45;"/>`
+  },
+  "m93": { // Mt. Lobi — a Leyte summit
+    path: "M8 46 L22 28 L30 34 L36 22 L44 32 L50 28 L58 46 Z"
+  },
+  "m33": { // Mt. Tibig — a modest Batangas twin bump
+    path: "M8 46 L22 30 L28 34 L34 24 L40 34 L46 30 L56 46 Z"
+  },
+  "m38": { // Mt. Mabilog — a smooth rolling Laguna dome
+    path: "M8 46 Q22 32 32 28 Q42 32 54 46 Z"
+  },
+  "m56": { // Mt. Bernacci — a small ridge in Camarines Norte
+    path: "M6 46 L16 34 L22 38 L28 26 L34 36 L40 30 L58 46 Z"
+  },
+  "m57": { // Mt. Binutasan — a broad rounded Quezon hill
+    path: "M8 46 Q18 28 32 24 Q46 28 56 46 Z"
+  },
+  "m58": { // Mt. Baturay — a modest Sorsogon peak
+    path: "M8 46 L26 24 L32 30 L38 20 L54 46 Z"
+  },
+  "m60": { // Mt. Panay — a broad Bicol ridge
+    path: "M6 46 L18 30 L26 36 L32 22 L40 34 L48 28 L58 46 Z"
+  },
+  "m61": { // Mt. Naupa — a gentle Cebu rolling hill
+    path: "M8 46 Q22 34 32 30 Q42 34 54 46 Z"
+  },
+  "m70": { // Mt. Lidong — a modest Aklan twin peak
+    path: "M8 46 L22 28 L28 34 L34 22 L40 34 L46 28 L58 46 Z"
+  },
+  "m71": { // Mt. Igmatongtong — a low Iloilo ridge
+    path: "M8 46 Q20 34 32 30 Q44 34 56 46 Z"
+  },
+  "m72": { // Mt. Napulak — a modest Iloilo peak
+    path: "M8 46 L24 26 L30 32 L36 20 L42 32 L48 26 L56 46 Z"
+  },
+  "m74": { // Mt. Capoto-an — a small jagged Samar ridge
+    path: "M6 46 L16 32 L22 38 L28 24 L34 36 L40 28 L58 46 Z"
+  },
+  "m75": { // Mt. Huraw — a gentle Leyte rolling hill
+    path: "M8 46 Q18 32 30 28 Q42 30 56 46 Z"
+  },
+  "m81": { // Mt. Lumot — a forested Agusan del Sur massif
+    path: "M6 46 L16 30 L24 36 L30 20 L38 32 L46 26 L58 46 Z"
+  },
+  "m85": { // Mt. Lantik — a highland ridge on the Ifugao-Benguet border
+    path: "M8 46 L22 32 L28 38 L34 24 L40 36 L46 30 L58 46 Z"
+  }
+};
+
+function badgeSVG(m, size){
+  size = size || 52;
+  const c = CAT(m.difficulty);
+  const globalMax = Math.max(...MOUNTAINS.map(x=>x.maslNum), 1);
+  const hFrac = 0.35 + 0.65 * Math.sqrt(m.maslNum / globalMax);
+  const baseY = 46;
+  const iconic = ICONIC_SHAPES[m.id];
+  let shapeMarkup;
+  if(iconic){
+    const extra = iconic.extra ? iconic.extra.replace(/CURRENT_DK/g, c.dk).replace(/CURRENT_FILL/g, c.fill) : "";
+    shapeMarkup = `<g transform="translate(32,${baseY}) scale(1,${hFrac.toFixed(3)}) translate(-32,-${baseY})">
+      <path d="${iconic.path}" style="fill:${c.fill}; stroke:${c.dk}; stroke-width:1"/>
+      ${extra}
+    </g>`;
+  } else {
+    const topY = baseY - hFrac*30, midY = baseY - hFrac*20;
+    const jitter = (hashId(m.id+m.name) % 9) - 4;
+    const midX = 32 + jitter, leftX = 8, rightX = 56;
+    const snow = m.maslNum >= 2500;
+    shapeMarkup = `<path d="M${leftX} ${baseY} L${(midX-10).toFixed(1)} ${midY.toFixed(1)} L${midX} ${topY.toFixed(1)} L${(midX+10).toFixed(1)} ${midY.toFixed(1)} L${rightX} ${baseY} Z" style="fill:${c.fill}; stroke:${c.dk}; stroke-width:1"/>
+    ${snow ? `<path d="M${midX-4} ${(topY+5).toFixed(1)} L${midX} ${topY.toFixed(1)} L${midX+4} ${(topY+5).toFixed(1)} Z" style="fill:#f2e9d0"/>` : ``}`;
+  }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 64 64" aria-hidden="true">
+    <circle cx="32" cy="32" r="29" style="fill:var(--canvas); stroke:${c.fill}; stroke-width:4"/>
+    ${shapeMarkup}
+    <text x="32" y="58" text-anchor="middle" style="font-family:'JetBrains Mono',monospace; font-size:8px; font-weight:600; fill:${c.dk};">${m.maslNum}</text>
+  </svg>`;
+}
+
+let state = { view:"log", name:null, hiked:new Set(), hikedDates:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null };
+const app = document.getElementById("app");
+
+const HEX = {
+  bg:"#202b21", canvas:"#f2e9d0", canvasDim:"#c9bd97",
+  moss:"#6b8f5c", mossD:"#35401e", teal:"#4f8f81", tealD:"#1e3730",
+  gold:"#c9a227", goldD:"#4a3a0c", amber:"#c2791f", amberD:"#4a2c07",
+  rust:"#b5502e", rustD:"#481f10", brick:"#8b3a3a", brickD:"#3a1414"
+};
+function CAT_HEX(diff){
+  const d = diff.toLowerCase();
+  if(d.includes("very difficult")) return {fill:HEX.brick, dk:HEX.brickD};
+  if(d==="difficult") return {fill:HEX.rust, dk:HEX.rustD};
+  if(d.includes("moderate to difficult")) return {fill:HEX.amber, dk:HEX.amberD};
+  if(d==="moderate") return {fill:HEX.gold, dk:HEX.goldD};
+  if(d.includes("beginner to moderate")) return {fill:HEX.teal, dk:HEX.tealD};
+  return {fill:HEX.moss, dk:HEX.mossD};
+}
+function truncateName(s, n){ return s.length > n ? s.slice(0, n-1)+"…" : s; }
+
+function exportBadgeGroup(m, cx, cy){
+  const c = CAT_HEX(m.difficulty);
+  const globalMax = Math.max(...MOUNTAINS.map(x=>x.maslNum), 1);
+  const hFrac = 0.35 + 0.65 * Math.sqrt(m.maslNum / globalMax);
+  const r = 46;
+  const iconic = ICONIC_SHAPES[m.id];
+  let shapeMarkup;
+  if(iconic){
+    const k = r/29;
+    const extra = iconic.extra ? iconic.extra.replace(/CURRENT_DK/g, c.dk).replace(/CURRENT_FILL/g, c.fill) : "";
+    shapeMarkup = `<g transform="translate(${cx},${cy}) scale(${k.toFixed(3)}) translate(-32,-32)">
+      <g transform="translate(32,46) scale(1,${hFrac.toFixed(3)}) translate(-32,-46)">
+        <path d="${iconic.path}" fill="${c.fill}" stroke="${c.dk}" stroke-width="1"/>
+        ${extra}
+      </g>
+    </g>`;
+  } else {
+    const baseY = cy+30, topY = cy+30-hFrac*46, midY = cy+30-hFrac*30;
+    const jitter = (hashId(m.id+m.name) % 13) - 6;
+    const midX = cx+jitter, leftX = cx-40, rightX = cx+40;
+    const snow = m.maslNum >= 2500;
+    shapeMarkup = `<path d="M${leftX} ${baseY} L${(midX-16).toFixed(1)} ${midY.toFixed(1)} L${midX.toFixed(1)} ${topY.toFixed(1)} L${(midX+16).toFixed(1)} ${midY.toFixed(1)} L${rightX} ${baseY} Z" fill="${c.fill}" stroke="${c.dk}" stroke-width="1.5"/>
+    ${snow ? `<path d="M${(midX-6).toFixed(1)} ${(topY+8).toFixed(1)} L${midX.toFixed(1)} ${topY.toFixed(1)} L${(midX+6).toFixed(1)} ${(topY+8).toFixed(1)} Z" fill="#f2e9d0"/>` : ``}`;
+  }
+  return `
+  <circle cx="${cx}" cy="${cy}" r="${r}" fill="${HEX.canvas}" stroke="${c.fill}" stroke-width="6"/>
+  ${shapeMarkup}
+  <text x="${cx}" y="${cy+42}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600" fill="${c.dk}">${m.maslNum}</text>
+  <text x="${cx}" y="${cy+70}" text-anchor="middle" font-family="Oswald, sans-serif" font-size="13" font-weight="600" fill="${HEX.canvas}">${esc(truncateName(m.name,18))}</text>`;
+}
+
+function buildWallExportSVG(){
+  const done = MOUNTAINS.filter(m=>state.hiked.has(m.id)).sort((a,b)=>b.maslNum-a.maslNum);
+  const cols = Math.max(1, Math.min(5, done.length));
+  const cellW = 160, cellH = 176, padX = 40, padTop = 130, padBottom = 40;
+  const rows = Math.ceil(done.length / cols) || 1;
+  const width = cols*cellW + padX*2;
+  const height = padTop + rows*cellH + padBottom;
+  const totalElev = done.reduce((s,m)=>s+m.maslNum,0);
+  let badges = "";
+  done.forEach((m,i)=>{
+    const col = i % cols, row = Math.floor(i/cols);
+    const cx = padX + col*cellW + cellW/2;
+    const cy = padTop + row*cellH + 50;
+    badges += exportBadgeGroup(m, cx, cy);
+  });
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+    <rect width="${width}" height="${height}" fill="${HEX.bg}"/>
+    <text x="${padX}" y="52" font-family="Oswald, sans-serif" font-size="26" font-weight="700" fill="${HEX.canvas}" letter-spacing="1">SUMMIT LOG · ${esc(state.name||"")}</text>
+    <text x="${padX}" y="80" font-family="JetBrains Mono, monospace" font-size="14" fill="${HEX.canvasDim}">${done.length} peaks badged · ${totalElev.toLocaleString()} masl climbed</text>
+    ${badges}
+  </svg>`;
+}
+
+function showToast(msg){
+  state.toast = msg;
+  render();
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(()=>{ state.toast = null; render(); }, 2600);
+}
+
+let celebrated = new Set();
+async function loadCelebrated(){
+  const raw = await getP("celebrated", false);
+  return raw ? new Set(JSON.parse(raw)) : new Set();
+}
+async function saveCelebrated(){
+  await setP("celebrated", JSON.stringify(Array.from(celebrated)), false);
+}
+function showCelebration(title, sub){
+  state.celebration = {title, sub};
+  render();
+  clearTimeout(window.__celebTimer);
+  window.__celebTimer = setTimeout(()=>{ state.celebration = null; render(); }, 4200);
+}
+function checkMilestones(){
+  const milestones = [5,10,25,50,75,100];
+  const count = state.hiked.size;
+  if(milestones.includes(count) && !celebrated.has("count-"+count)){
+    celebrated.add("count-"+count);
+    saveCelebrated();
+    showCelebration(`${count} peaks badged!`, "Keep the streak going.");
+    return;
+  }
+  if(count === MOUNTAINS.length && MOUNTAINS.length > 0 && !celebrated.has("all")){
+    celebrated.add("all");
+    saveCelebrated();
+    showCelebration("Every mountain on the list!", "You've badged all of them.");
+    return;
+  }
+  for(const cat of GROUP_ORDER){
+    const list = MOUNTAINS.filter(m => CAT(m.difficulty).label === cat);
+    if(list.length === 0) continue;
+    const key = "cat-"+cat;
+    if(!celebrated.has(key) && list.every(m => state.hiked.has(m.id))){
+      celebrated.add(key);
+      saveCelebrated();
+      showCelebration(`All ${cat} peaks done!`, `Every ${cat.toLowerCase()} mountain, badged.`);
+      return;
+    }
+  }
+}
+
+async function handleModalConfirm(){
+  const modal = state.modal;
+  if(!modal) return;
+  if(modal.kind === "prompt"){
+    const inputEl = document.getElementById("modal-input");
+    const value = inputEl ? inputEl.value.trim() : "";
+    if(modal.action === "rename" && value && value !== state.name){
+      const oldName = state.name;
+      state.name = value;
+      await setP("profile", JSON.stringify({name:state.name}), false);
+      await delP("leaderboard:"+oldName, true);
+      await persistHiked();
+      state.leaderboard = await loadLeaderboard();
+    }
+  } else if(modal.kind === "date"){
+    const inputEl = document.getElementById("modal-input");
+    const value = inputEl ? inputEl.value : "";
+    state.hikedDates[modal.payload] = value || null;
+    syncHikedSet();
+    await persistHiked();
+    if(modal.action === "mark-hiked"){
+      state.leaderboard = await loadLeaderboard();
+      state.modal = null;
+      render();
+      checkMilestones();
+      return;
+    }
+  } else if(modal.action === "unmark"){
+    delete state.hikedDates[modal.payload];
+    syncHikedSet();
+    await persistHiked();
+    state.leaderboard = await loadLeaderboard();
+  } else if(modal.action === "delete-mountain"){
+    const id = modal.payload;
+    deletedIds.add(id);
+    await saveDeletedIds();
+    MOUNTAINS = MOUNTAINS.filter(x=>x.id!==id);
+    if(state.hiked.has(id)){
+      delete state.hikedDates[id];
+      syncHikedSet();
+      await persistHiked();
+      state.leaderboard = await loadLeaderboard();
+    }
+    state.editingId = null;
+  } else if(modal.action === "reset-log"){
+    state.hikedDates = {};
+    syncHikedSet();
+    await persistHiked();
+    state.leaderboard = await loadLeaderboard();
+  }
+  state.modal = null;
+  render();
+}
+
+async function copySummary(){
+  const done = MOUNTAINS.filter(m=>state.hiked.has(m.id));
+  const totalElev = done.reduce((s,m)=>s+m.maslNum,0);
+  const text = `${state.name} · ${done.length}/${MOUNTAINS.length} peaks badged · ${totalElev.toLocaleString()} masl climbed — Summit Log`;
+  try{
+    await navigator.clipboard.writeText(text);
+    showToast("Copied to clipboard!");
+  }catch(e){
+    try{
+      const ta = document.createElement("textarea");
+      ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      showToast("Copied to clipboard!");
+    }catch(e2){
+      showToast(text);
+    }
+  }
+}
+
+function downloadWallImage(){
+  const done = MOUNTAINS.filter(m=>state.hiked.has(m.id));
+  if(done.length === 0){ showToast("Badge a mountain first to make an image."); return; }
+  const svgStr = buildWallExportSVG();
+  const svgBlob = new Blob([svgStr], {type:"image/svg+xml;charset=utf-8"});
+  const url = URL.createObjectURL(svgBlob);
+  const img = new Image();
+  img.onload = ()=>{
+    const scale = 2;
+    const canvas = document.createElement("canvas");
+    canvas.width = img.width * scale;
+    canvas.height = img.height * scale;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(scale, scale);
+    ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(url);
+    canvas.toBlob((blob)=>{
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "summit-log-badge-wall.png";
+      a.click();
+    }, "image/png");
+  };
+  img.onerror = ()=>{ URL.revokeObjectURL(url); showToast("Couldn't generate the image — try copy summary instead."); };
+  img.src = url;
+}
+
+async function getP(key, shared){ try{ const r = await window.storage.get(key, shared); return r? r.value : null; }catch(e){ return null; } }
+async function setP(key, val, shared){ try{ await window.storage.set(key, val, shared); }catch(e){} }
+async function delP(key, shared){ try{ await window.storage.delete(key, shared); }catch(e){} }
+
+async function loadProfile(){
+  const raw = await getP("profile", false);
+  return raw ? JSON.parse(raw) : null;
+}
+async function loadHiked(){
+  const raw = await getP("hiked", false);
+  if(!raw) return {};
+  try{
+    const parsed = JSON.parse(raw);
+    if(Array.isArray(parsed)){
+      const obj = {};
+      parsed.forEach(id => obj[id] = null);
+      return obj;
+    }
+    return parsed;
+  }catch(e){ return {}; }
+}
+function syncHikedSet(){
+  state.hiked = new Set(Object.keys(state.hikedDates));
+}
+function formatDate(dateStr){
+  try{
+    const d = new Date(dateStr+"T00:00:00");
+    return d.toLocaleDateString("en-US", {month:"short", day:"numeric", year:"numeric"});
+  }catch(e){ return dateStr; }
+}
+async function persistHiked(){
+  await setP("hiked", JSON.stringify(state.hikedDates), false);
+  const hikedMountains = MOUNTAINS.filter(m=>state.hiked.has(m.id));
+  const elev = hikedMountains.reduce((s,m)=>s+m.maslNum,0);
+  const regionCounts = {}, regionElev = {};
+  hikedMountains.forEach(m=>{
+    const r = inferRegion(m.place);
+    regionCounts[r] = (regionCounts[r]||0)+1;
+    regionElev[r] = (regionElev[r]||0)+m.maslNum;
+  });
+  await setP("leaderboard:"+state.name, JSON.stringify({name:state.name, count:state.hiked.size, elev, regionCounts, regionElev, updated:Date.now()}), true);
+}
+async function loadLeaderboard(){
+  try{
+    const list = await window.storage.list("leaderboard:", true);
+    if(!list || !list.keys) return [];
+    const out = [];
+    for(const k of list.keys){
+      const raw = await getP(k, true);
+      if(raw){ try{ out.push(JSON.parse(raw)); }catch(e){} }
+    }
+    out.sort((a,b)=> (b.count-a.count) || (b.elev-a.elev));
+    return out;
+  }catch(e){ return []; }
+}
+
+async function loadOverrides(){
+  const raw = await getP("overrides", true);
+  return raw ? JSON.parse(raw) : {};
+}
+function applyOverridesToMountains(){
+  MOUNTAINS.forEach(m=>{
+    const o = overrides[m.id];
+    if(o){
+      if(o.name) m.name = o.name;
+      if(o.place) m.place = o.place;
+      if(o.difficulty) m.difficulty = o.difficulty;
+      if(o.maslRaw){ m.maslRaw = o.maslRaw; m.maslNum = parseMaslNum(o.maslRaw); }
+    }
+  });
+}
+async function saveOverride(id, fields){
+  overrides[id] = fields;
+  await setP("overrides", JSON.stringify(overrides), true);
+}
+
+async function loadCustomMountains(){
+  const raw = await getP("custom-mountains", true);
+  return raw ? JSON.parse(raw) : [];
+}
+async function saveCustomMountains(){
+  await setP("custom-mountains", JSON.stringify(customMountains), true);
+}
+async function loadDeletedIds(){
+  const raw = await getP("deleted-ids", true);
+  return raw ? new Set(JSON.parse(raw)) : new Set();
+}
+async function saveDeletedIds(){
+  await setP("deleted-ids", JSON.stringify(Array.from(deletedIds)), true);
+}
+
+function buildRidgeSVG(){
+  const sorted = [...MOUNTAINS].sort((a,b)=>b.maslNum-a.maslNum);
+  const n = sorted.length;
+  const arranged = new Array(n);
+  let left = Math.floor((n-1)/2), right = left+1, goLeft = true;
+  for(const m of sorted){
+    if(goLeft){ arranged[left]=m; left--; } else { arranged[right]=m; right++; }
+    goLeft = !goLeft;
+  }
+  const W = 900, H = 200, base = 190, maxH = 150;
+  const maxMasl = sorted[0].maslNum;
+  const pts = arranged.map((m,i)=>{
+    const x = (i/(n-1))*W;
+    const y = base - (m.maslNum/maxMasl)*maxH;
+    return {x, y, m};
+  });
+  const poly = "0,"+base+" " + pts.map(p=>p.x.toFixed(1)+","+p.y.toFixed(1)).join(" ") + " "+W+","+base;
+  let flags = "";
+  pts.forEach(p=>{
+    if(state.hiked.has(p.m.id)){
+      flags += `<g transform="translate(${p.x.toFixed(1)},${(p.y-1).toFixed(1)})">
+        <line x1="0" y1="0" x2="0" y2="-16" stroke="#f2e9d0" stroke-width="1.2"/>
+        <path d="M0,-16 L9,-12.5 L0,-9 Z" fill="#b5502e"/>
+      </g>`;
+    }
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="${poly}" fill="#324a2c" stroke="#4a6a3f" stroke-width="1"/>
+    ${flags}
+  </svg>`;
+}
+
+function renderModal(){
+  if(!state.modal) return "";
+  const m = state.modal;
+  return `<div class="modal-backdrop" data-modal-backdrop>
+    <div class="modal-box">
+      <p>${esc(m.message)}</p>
+      ${m.kind === 'prompt' ? `<input type="text" id="modal-input" value="${esc(m.defaultValue||'')}">` : ``}
+      ${m.kind === 'date' ? `<input type="date" id="modal-input" value="${esc(m.defaultValue||'')}"><a data-clear-date style="display:block; font-size:12px; color:var(--thread); text-decoration:underline; cursor:pointer; margin:-10px 0 16px;">No date / clear</a>` : ``}
+      <div class="modal-actions">
+        <button class="toggle-btn" data-modal-cancel>Cancel</button>
+        <button class="btn" data-modal-confirm>${esc(m.confirmLabel||'Confirm')}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderCelebration(){
+  if(!state.celebration) return "";
+  return `<div class="celebration">
+    <div class="celebration-card">
+      <div class="celebration-emoji">✨ 🏔️ ✨</div>
+      <div class="celebration-title">${esc(state.celebration.title)}</div>
+      <div class="celebration-sub">${esc(state.celebration.sub)}</div>
+    </div>
+  </div>`;
+}
+
+function render(){
+  if(state.loading){ app.innerHTML = `<div class="wrap"></div>`; return; }
+  if(!state.name){ renderOnboard(); return; }
+  app.innerHTML = renderHeader() + (state.view==="log" ? renderLog() : state.view==="wall" ? renderWall() : renderRankings())
+    + (state.toast ? `<div class="toast">${esc(state.toast)}</div>` : ``)
+    + renderModal()
+    + renderCelebration();
+}
+
+function renderOnboard(){
+  app.innerHTML = `
+  <div class="onboard">
+    <h2>Summit Log</h2>
+    <p>Track the Philippine mountains you've climbed, earn a badge for each one, and see how you stack up against other hikers.</p>
+    <div>
+      <input type="text" id="name-input" placeholder="Your trail name" maxlength="24" />
+      <button type="button" data-action="start">Start my log</button>
+    </div>
+    <p class="fine">Your name and climb count appear on the public rankings, visible to anyone who opens this page. Pick something you're fine sharing.</p>
+  </div>`;
+}
+
+function renderHeader(){
+  const total = MOUNTAINS.length;
+  const done = state.hiked.size;
+  const elev = MOUNTAINS.filter(m=>state.hiked.has(m.id)).reduce((s,m)=>s+m.maslNum,0);
+  const myRank = state.leaderboard.findIndex(e=>e.name===state.name);
+  return `
+  <div class="topbar">
+    <div class="brand">SUMMIT LOG <span>·</span> Philippines</div>
+    <div class="tabs">
+      <button class="tab-btn ${state.view==='log'?'active':''}" data-tab="log">Trail log</button>
+      <button class="tab-btn ${state.view==='wall'?'active':''}" data-tab="wall">Badge wall</button>
+      <button class="tab-btn ${state.view==='rankings'?'active':''}" data-tab="rankings">Rankings</button>
+    </div>
+  </div>
+  <div class="namebar">Climbing as <b style="color:var(--canvas)">${esc(state.name)}</b> · <a data-action="rename">change name</a></div>
+  ${state.view==='log' ? `<div class="edit-note">See wrong info, or a mountain that's missing? Use "Edit" on a card, or add a new one below — changes are shared and show for everyone.</div>` : ``}
+  ${state.view==='log' ? `
+  <div class="hero">
+    <div class="hero-stats">
+      <div><div class="hero-num">${done}<sub>/${total}</sub></div><div class="hero-sub">Peaks badged</div></div>
+      <div><div class="hero-num mono hero-elev">${elev.toLocaleString()}<sub> masl</sub></div><div class="hero-sub">Total elevation climbed</div></div>
+    </div>
+    <div class="ridge-box">${buildRidgeSVG()}</div>
+    <div class="rank-note">${myRank>=0 ? `You're <b>#${myRank+1}</b> of ${state.leaderboard.length} hikers on the board.` : `Mark a mountain as hiked to join the rankings.`}</div>
+  </div>` : ``}
+  `;
+}
+
+const REGION_MAP = [
+  ["Luzon", ["benguet","nueva vizcaya","ifugao","kalinga","mountain province","cagayan","zambales","tarlac","pampanga","bulacan","rizal","laguna","batangas","cavite","quezon","bataan","camarines","albay","sorsogon","mindoro","palawan","bicol"]],
+  ["Visayas", ["cebu","negros","iloilo","antique","aklan","capiz","leyte","samar","siquijor","bohol","romblon"]],
+  ["Mindanao", ["davao","cotabato","bukidnon","zamboanga","misamis","agusan","surigao","camiguin","lanao","maguindanao","sarangani","sultan kudarat"]]
+];
+function inferRegion(place){
+  const p = String(place).toLowerCase();
+  for(const [region, keys] of REGION_MAP){
+    if(keys.some(k=>p.includes(k))) return region;
+  }
+  return "Other";
+}
+
+function getFiltered(){
+  const q = state.search.trim().toLowerCase();
+  let list = MOUNTAINS.slice();
+  if(state.region !== "all") list = list.filter(m => inferRegion(m.place) === state.region);
+  if(state.status === "hiked") list = list.filter(m => state.hiked.has(m.id));
+  else if(state.status === "not-yet") list = list.filter(m => !state.hiked.has(m.id));
+  if(q) list = list.filter(m => m.name.toLowerCase().includes(q) || m.place.toLowerCase().includes(q));
+  return list;
+}
+
+function renderControls(){
+  return `<div class="controls-row">
+    <input type="text" id="search-input" placeholder="Search by name or place" value="${esc(state.search)}">
+    <select id="status-select">
+      <option value="all" ${state.status==='all'?'selected':''}>All mountains</option>
+      <option value="hiked" ${state.status==='hiked'?'selected':''}>Hiked</option>
+      <option value="not-yet" ${state.status==='not-yet'?'selected':''}>Not yet hiked</option>
+    </select>
+    <select id="region-select">
+      <option value="all" ${state.region==='all'?'selected':''}>All regions</option>
+      <option value="Luzon" ${state.region==='Luzon'?'selected':''}>Luzon</option>
+      <option value="Visayas" ${state.region==='Visayas'?'selected':''}>Visayas</option>
+      <option value="Mindanao" ${state.region==='Mindanao'?'selected':''}>Mindanao</option>
+    </select>
+    <select id="sort-select">
+      <option value="groups" ${state.sort==='groups'?'selected':''}>Group by difficulty</option>
+      <option value="elev-desc" ${state.sort==='elev-desc'?'selected':''}>Elevation: high to low</option>
+      <option value="elev-asc" ${state.sort==='elev-asc'?'selected':''}>Elevation: low to high</option>
+      <option value="name-asc" ${state.sort==='name-asc'?'selected':''}>Name: A to Z</option>
+    </select>
+  </div>`;
+}
+
+function renderAddMountainSection(){
+  if(!state.addingMountain){
+    return `<button class="btn" data-action="show-add-mountain" style="margin:2px 0 24px;">+ Add a mountain not listed</button>`;
+  }
+  return `<div class="card editing" style="max-width:320px; margin:2px 0 24px;">
+    <div class="edit-field"><label>Name</label><input type="text" id="add-name" placeholder="Mt. Example"></div>
+    <div class="edit-field"><label>Place</label><input type="text" id="add-place" placeholder="Province"></div>
+    <div class="edit-field"><label>Difficulty</label>
+      <select id="add-difficulty">
+        ${DIFFICULTY_OPTIONS.map(d=>`<option value="${d}">${d}</option>`).join("")}
+      </select>
+    </div>
+    <div class="edit-field"><label>Elevation (masl)</label><input type="text" id="add-masl" placeholder="e.g. 1200 or 1200+"></div>
+    <div class="edit-actions">
+      <button class="btn" data-action="save-add-mountain">Add to list</button>
+      <button class="toggle-btn" data-action="cancel-add-mountain">Cancel</button>
+    </div>
+  </div>`;
+}
+
+function renderLog(){
+  const filtered = getFiltered();
+  let body = "";
+  if(filtered.length === 0){
+    const msg = state.search.trim() ? `No mountains match "${esc(state.search)}".`
+      : state.status === "hiked" ? "You haven't badged any mountains in this region yet."
+      : state.status === "not-yet" ? "Nothing left here — you've badged every mountain matching these filters."
+      : "No mountains match these filters.";
+    body = `<div class="no-results">${msg}</div>`;
+  } else if(state.sort === "groups"){
+    const groups = {};
+    filtered.forEach(m=>{
+      const cat = CAT(m.difficulty).label;
+      (groups[cat] = groups[cat]||[]).push(m);
+    });
+    GROUP_ORDER.forEach(cat=>{
+      const list = groups[cat];
+      if(!list) return;
+      list.sort((a,b)=>b.maslNum-a.maslNum);
+      const c = CAT(cat);
+      const doneInGroup = list.filter(m=>state.hiked.has(m.id)).length;
+      body += `<div class="group">
+        <div class="group-head">
+          <span class="swatch" style="background:${c.fill}"></span>
+          <h3>${cat}</h3>
+          <span class="count">${doneInGroup}/${list.length} badged</span>
+        </div>
+        <div class="grid">
+          ${list.map(m=>cardHTML(m)).join("")}
+        </div>
+      </div>`;
+    });
+  } else {
+    const list = filtered.slice();
+    if(state.sort === "elev-desc") list.sort((a,b)=>b.maslNum-a.maslNum);
+    else if(state.sort === "elev-asc") list.sort((a,b)=>a.maslNum-b.maslNum);
+    else if(state.sort === "name-asc") list.sort((a,b)=>a.name.localeCompare(b.name));
+    body = `<div class="grid">${list.map(m=>cardHTML(m)).join("")}</div>`;
+  }
+  return renderControls() + renderAddMountainSection() + body;
+}
+
+function cardHTML(m){
+  if(state.editingId === m.id) return editCardHTML(m);
+  const c = CAT(m.difficulty);
+  const done = state.hiked.has(m.id);
+  const dateStr = state.hikedDates[m.id];
+  return `<div class="card ${done?'done':''}">
+    ${done ? `<div class="stamp">Summited</div>` : ``}
+    <div class="card-top">
+      ${badgeSVG(m)}
+      <a class="edit-link" data-edit="${m.id}">Edit</a>
+    </div>
+    <p class="card-name">${esc(m.name)}</p>
+    <p class="card-place">${esc(m.place)}</p>
+    <div class="card-bottom">
+      <div class="masl">${m.maslRaw}<small> masl</small></div>
+      <div class="diff-pill" style="background:${c.dk}; color:${c.fill}">${esc(m.difficulty)}</div>
+    </div>
+    <button class="toggle-btn" data-toggle="${m.id}">${done ? "Badge earned ✓" : "Mark as hiked"}</button>
+    ${done ? `<div class="climb-date">${dateStr ? esc(formatDate(dateStr)) : "No date logged"} · <a data-edit-date="${m.id}">${dateStr ? "edit" : "add date"}</a></div>` : ``}
+  </div>`;
+}
+
+function editCardHTML(m){
+  return `<div class="card editing">
+    <div class="edit-field"><label>Name</label><input type="text" data-f="name" value="${esc(m.name)}"></div>
+    <div class="edit-field"><label>Place</label><input type="text" data-f="place" value="${esc(m.place)}"></div>
+    <div class="edit-field"><label>Difficulty</label>
+      <select data-f="difficulty">
+        ${DIFFICULTY_OPTIONS.map(d=>`<option value="${d}" ${d===m.difficulty?"selected":""}>${d}</option>`).join("")}
+      </select>
+    </div>
+    <div class="edit-field"><label>Elevation (masl)</label><input type="text" data-f="maslRaw" value="${esc(m.maslRaw)}"></div>
+    <div class="edit-actions">
+      <button class="btn" data-save-edit="${m.id}">Save</button>
+      <button class="toggle-btn" data-cancel-edit="${m.id}">Cancel</button>
+    </div>
+    <button class="toggle-btn" data-delete="${m.id}" style="margin-top:8px; color:var(--brick); border-color:var(--brick);">Delete this mountain</button>
+  </div>`;
+}
+
+const REGION_ORDER = ["Luzon","Visayas","Mindanao","Other"];
+const REGION_COLOR = {Luzon:"var(--moss)", Visayas:"var(--teal)", Mindanao:"var(--rust)", Other:"var(--thread)"};
+
+function computeStats(){
+  const done = MOUNTAINS.filter(m=>state.hiked.has(m.id));
+  const byRegion = {}, byDiff = {};
+  done.forEach(m=>{
+    const r = inferRegion(m.place);
+    byRegion[r] = byRegion[r] || {count:0, elev:0};
+    byRegion[r].count++; byRegion[r].elev += m.maslNum;
+    const cat = CAT(m.difficulty).label;
+    byDiff[cat] = byDiff[cat] || {count:0, elev:0};
+    byDiff[cat].count++; byDiff[cat].elev += m.maslNum;
+  });
+  return {byRegion, byDiff};
+}
+
+function renderBarRows(dataObj, orderList, colorFn){
+  const entries = orderList.filter(k=>dataObj[k]).map(k=>({key:k, ...dataObj[k]}));
+  if(entries.length === 0) return `<p style="font-size:12px; color:var(--canvas-dim);">Nothing here yet.</p>`;
+  const maxElev = Math.max(...entries.map(e=>e.elev), 1);
+  return entries.map(e=>{
+    const pct = Math.max(6, Math.round((e.elev/maxElev)*100));
+    return `<div class="stat-row">
+      <div class="stat-label">${esc(e.key)}</div>
+      <div class="stat-bar-track"><div class="stat-bar-fill" style="width:${pct}%; background:${colorFn(e.key)};"></div></div>
+      <div class="stat-value mono">${e.count} pk · ${e.elev.toLocaleString()} m</div>
+    </div>`;
+  }).join("");
+}
+
+function renderStats(){
+  const {byRegion, byDiff} = computeStats();
+  return `
+  <h3 style="margin:30px 0 4px;">My climbing breakdown</h3>
+  <p style="font-size:13px; color:var(--canvas-dim); margin:0 0 4px;">Elevation climbed, by region and by difficulty.</p>
+  <div class="stats-grid">
+    <div class="stats-col">
+      <h4>By region</h4>
+      ${renderBarRows(byRegion, REGION_ORDER, k=>REGION_COLOR[k]||"var(--thread)")}
+    </div>
+    <div class="stats-col">
+      <h4>By difficulty</h4>
+      ${renderBarRows(byDiff, GROUP_ORDER, k=>CAT(k).fill)}
+    </div>
+  </div>`;
+}
+
+function renderWall(){
+  const done = MOUNTAINS.filter(m=>state.hiked.has(m.id)).sort((a,b)=>b.maslNum-a.maslNum);
+  if(done.length === 0){
+    return `<div class="empty">Your board is empty. Mark a mountain as hiked on the Trail log to add your first patch.</div>`;
+  }
+  const totalElev = done.reduce((s,m)=>s+m.maslNum,0);
+  const timelineSorted = done.slice().sort((a,b)=>{
+    const da = state.hikedDates[a.id], db = state.hikedDates[b.id];
+    if(da && db) return db.localeCompare(da);
+    if(da && !db) return -1;
+    if(!da && db) return 1;
+    return a.name.localeCompare(b.name);
+  });
+  return `
+  <div class="wall-head">
+    <h3>My badge wall</h3>
+    <p>${done.length} peak${done.length!==1?'s':''} badged · ${totalElev.toLocaleString()} masl climbed total</p>
+    <div class="wall-actions">
+      <button class="btn" data-action="copy-summary">Copy my summary</button>
+      <button class="toggle-btn" data-action="download-wall">Download as image</button>
+    </div>
+  </div>
+  <div class="wall-grid">
+    ${done.map(m=>`
+      <div class="wall-badge">
+        ${badgeSVG(m, 84)}
+        <div class="wall-name">${esc(m.name)}</div>
+        <div class="wall-place">${esc(m.place)}</div>
+      </div>
+    `).join("")}
+  </div>
+  ${renderStats()}
+  <h3 style="margin:30px 0 4px;">Climb timeline</h3>
+  <p style="font-size:13px; color:var(--canvas-dim); margin:0 0 4px;">Most recent climbs first. Add dates on any card to fill this in.</p>
+  <div class="timeline">
+    ${timelineSorted.map(m=>{
+      const c = CAT(m.difficulty);
+      const d = state.hikedDates[m.id];
+      return `<div class="timeline-row">
+        <div class="timeline-dot" style="background:${c.fill}"></div>
+        <div class="timeline-date">${d ? esc(formatDate(d)) : "No date"} <a data-edit-date="${m.id}" style="font-size:10px; margin-left:2px;">edit</a></div>
+        <div class="timeline-name">${esc(m.name)}</div>
+        <div class="timeline-place">${esc(m.place)}</div>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+
+function renderRankings(){
+  let rows = state.leaderboard.slice();
+  if(state.rankActive === "month"){
+    const cutoff = Date.now() - 30*24*60*60*1000;
+    rows = rows.filter(r => r.updated && r.updated >= cutoff);
+  }
+  const region = state.rankRegion;
+  let getCount, getElev;
+  if(region === "all"){
+    getCount = r => r.count || 0;
+    getElev = r => r.elev || 0;
+  } else {
+    getCount = r => (r.regionCounts && r.regionCounts[region]) || 0;
+    getElev = r => (r.regionElev && r.regionElev[region]) || 0;
+    rows = rows.filter(r => getCount(r) > 0);
+  }
+  rows.sort((a,b) => (getCount(b)-getCount(a)) || (getElev(b)-getElev(a)));
+
+  let body = "";
+  if(rows.length === 0){
+    body = `<div class="empty">${state.rankActive==='month' ? "No hikers logged a climb in the last 30 days." : "No hikers on the board yet. Be the first to badge a peak."}</div>`;
+  } else {
+    body = rows.map((r,i)=>`
+      <div class="rank-row ${r.name===state.name?'me':''}">
+        <div class="rank-num">#${i+1}</div>
+        <div class="rank-name">${esc(r.name)}</div>
+        <div class="rank-count">${getCount(r)} peaks</div>
+        <div class="rank-elev mono">${getElev(r).toLocaleString()} m</div>
+      </div>`).join("");
+  }
+  return `
+  <h3 style="margin-bottom:4px;">Summit register</h3>
+  <p style="font-size:13px; color:var(--canvas-dim); margin:0 0 14px;">Ranked by number of mountains badged, then total elevation climbed.</p>
+  <div class="controls-row">
+    <select id="rank-region-select">
+      <option value="all" ${region==='all'?'selected':''}>All regions</option>
+      <option value="Luzon" ${region==='Luzon'?'selected':''}>Luzon</option>
+      <option value="Visayas" ${region==='Visayas'?'selected':''}>Visayas</option>
+      <option value="Mindanao" ${region==='Mindanao'?'selected':''}>Mindanao</option>
+    </select>
+    <select id="rank-active-select">
+      <option value="all" ${state.rankActive==='all'?'selected':''}>All time</option>
+      <option value="month" ${state.rankActive==='month'?'selected':''}>Active in the last 30 days</option>
+    </select>
+  </div>
+  <div class="rank-wrap">
+    <div class="rank-row head"><div>#</div><div>Hiker</div><div>Peaks</div><div>Elevation</div></div>
+    ${body}
+  </div>
+  <div class="settings-row"><a data-action="reset">Reset my trail log</a></div>
+  `;
+}
+
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+async function startLog(){
+  const input = document.getElementById("name-input");
+  const val = input ? input.value.trim() : "";
+  if(!val) return;
+  state.name = val;
+  state.hiked = new Set();
+  state.hikedDates = {};
+  await setP("profile", JSON.stringify({name:val}), false);
+  await persistHiked();
+  state.leaderboard = await loadLeaderboard();
+  render();
+}
+
+app.addEventListener("input", (e)=>{
+  if(e.target.id === "search-input"){
+    state.search = e.target.value;
+    render();
+    const el = document.getElementById("search-input");
+    if(el){ el.focus(); const len = el.value.length; el.setSelectionRange(len, len); }
+  }
+});
+
+app.addEventListener("change", (e)=>{
+  if(e.target.id === "sort-select"){
+    state.sort = e.target.value;
+    render();
+  }
+  if(e.target.id === "region-select"){
+    state.region = e.target.value;
+    render();
+  }
+  if(e.target.id === "status-select"){
+    state.status = e.target.value;
+    render();
+  }
+  if(e.target.id === "rank-region-select"){
+    state.rankRegion = e.target.value;
+    render();
+  }
+  if(e.target.id === "rank-active-select"){
+    state.rankActive = e.target.value;
+    render();
+  }
+});
+
+app.addEventListener("keydown", (e)=>{
+  if(e.key === "Enter" && e.target.id === "name-input"){
+    e.preventDefault();
+    startLog();
+  }
+  if(e.key === "Enter" && e.target.id === "modal-input"){
+    e.preventDefault();
+    handleModalConfirm();
+  }
+});
+
+app.addEventListener("click", async (e)=>{
+  const startBtn = e.target.closest('[data-action="start"]');
+  if(startBtn){ await startLog(); return; }
+
+  const tabBtn = e.target.closest("[data-tab]");
+  if(tabBtn){ state.view = tabBtn.dataset.tab; render(); return; }
+
+  const toggleBtn = e.target.closest("[data-toggle]");
+  if(toggleBtn){
+    const id = toggleBtn.dataset.toggle;
+    const m = MOUNTAINS.find(x=>x.id===id);
+    if(state.hiked.has(id)){
+      state.modal = { kind:"confirm", message:`Remove your "${m ? m.name : "this"}" badge? This un-marks it as hiked.`, action:"unmark", payload:id, confirmLabel:"Remove badge" };
+      render();
+      return;
+    }
+    const today = new Date().toISOString().slice(0,10);
+    state.modal = { kind:"date", message:`When did you climb "${m ? m.name : "this peak"}"? (optional)`, defaultValue:today, action:"mark-hiked", payload:id, confirmLabel:"Add badge" };
+    render();
+    return;
+  }
+
+  const editDateLink = e.target.closest("[data-edit-date]");
+  if(editDateLink){
+    const id = editDateLink.dataset.editDate;
+    const m = MOUNTAINS.find(x=>x.id===id);
+    const current = state.hikedDates[id] || new Date().toISOString().slice(0,10);
+    state.modal = { kind:"date", message:`Climb date for "${m ? m.name : "this peak"}"`, defaultValue:current, action:"edit-date", payload:id, confirmLabel:"Save date" };
+    render();
+    return;
+  }
+
+  const showAdd = e.target.closest('[data-action="show-add-mountain"]');
+  if(showAdd){ state.addingMountain = true; render(); return; }
+
+  const cancelAdd = e.target.closest('[data-action="cancel-add-mountain"]');
+  if(cancelAdd){ state.addingMountain = false; render(); return; }
+
+  const saveAdd = e.target.closest('[data-action="save-add-mountain"]');
+  if(saveAdd){
+    const name = document.getElementById("add-name").value.trim();
+    const place = document.getElementById("add-place").value.trim();
+    const difficulty = document.getElementById("add-difficulty").value;
+    const maslRaw = document.getElementById("add-masl").value.trim();
+    if(!name || !maslRaw){ showToast("Please enter at least a name and elevation."); return; }
+    const id = "c" + Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    const newM = { id, name, place: place || "Philippines", difficulty, maslRaw, maslNum: parseMaslNum(maslRaw) };
+    MOUNTAINS.push(newM);
+    customMountains.push(newM);
+    await saveCustomMountains();
+    state.addingMountain = false;
+    render();
+    return;
+  }
+
+  const editLink = e.target.closest("[data-edit]");
+  if(editLink){ state.editingId = editLink.dataset.edit; render(); return; }
+
+  const cancelEdit = e.target.closest("[data-cancel-edit]");
+  if(cancelEdit){ state.editingId = null; render(); return; }
+
+  const saveEdit = e.target.closest("[data-save-edit]");
+  if(saveEdit){
+    const id = saveEdit.dataset.saveEdit;
+    const card = saveEdit.closest(".card");
+    const val = (f)=> card.querySelector(`[data-f="${f}"]`).value.trim();
+    const name = val("name"), place = val("place"), difficulty = val("difficulty"), maslRaw = val("maslRaw");
+    const m = MOUNTAINS.find(x=>x.id===id);
+    if(m && name && place && maslRaw){
+      m.name = name; m.place = place; m.difficulty = difficulty; m.maslRaw = maslRaw;
+      m.maslNum = parseMaslNum(maslRaw);
+      await saveOverride(id, {name, place, difficulty, maslRaw});
+    }
+    state.editingId = null;
+    render();
+    return;
+  }
+
+  const copyBtn = e.target.closest('[data-action="copy-summary"]');
+  if(copyBtn){ await copySummary(); return; }
+
+  const downloadBtn = e.target.closest('[data-action="download-wall"]');
+  if(downloadBtn){ downloadWallImage(); return; }
+
+  const deleteMountain = e.target.closest("[data-delete]");
+  if(deleteMountain){
+    const id = deleteMountain.dataset.delete;
+    const m = MOUNTAINS.find(x=>x.id===id);
+    if(!m) return;
+    state.modal = { kind:"confirm", message:`Delete "${m.name}" from the list? This removes it for everyone, including anyone who already badged it.`, action:"delete-mountain", payload:id, confirmLabel:"Delete" };
+    render();
+    return;
+  }
+
+  const renameBtn = e.target.closest('[data-action="rename"]');
+  if(renameBtn){
+    state.modal = { kind:"prompt", message:"Enter a new trail name:", defaultValue:state.name, action:"rename", confirmLabel:"Save name" };
+    render();
+    return;
+  }
+
+  const resetBtn = e.target.closest('[data-action="reset"]');
+  if(resetBtn){
+    state.modal = { kind:"confirm", message:"This clears every badge you've earned. Continue?", action:"reset-log", confirmLabel:"Reset log" };
+    render();
+    return;
+  }
+
+  const clearDate = e.target.closest("[data-clear-date]");
+  if(clearDate){
+    const input = document.getElementById("modal-input");
+    if(input) input.value = "";
+    return;
+  }
+
+  const modalCancel = e.target.closest("[data-modal-cancel]");
+  if(modalCancel){ state.modal = null; render(); return; }
+
+  const modalBackdrop = e.target.closest("[data-modal-backdrop]");
+  if(modalBackdrop && e.target === modalBackdrop){ state.modal = null; render(); return; }
+
+  const modalConfirm = e.target.closest("[data-modal-confirm]");
+  if(modalConfirm){ await handleModalConfirm(); return; }
+});
+
+(async function init(){
+  state.loading = true;
+  overrides = await loadOverrides();
+  customMountains = await loadCustomMountains();
+  deletedIds = await loadDeletedIds();
+  celebrated = await loadCelebrated();
+  MOUNTAINS = MOUNTAINS.concat(customMountains).filter(m=>!deletedIds.has(m.id));
+  applyOverridesToMountains();
+  const profile = await loadProfile();
+  if(profile){
+    state.name = profile.name;
+    state.hikedDates = await loadHiked();
+    syncHikedSet();
+  }
+  state.leaderboard = await loadLeaderboard();
+  state.loading = false;
+  render();
+})();
+</script>
+</body>
+</html>
