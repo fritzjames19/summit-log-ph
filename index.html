@@ -79,7 +79,12 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .namebar a{color:var(--gold); cursor:pointer; text-decoration:underline;}
 
 .group{margin-bottom:26px;}
-.group-head{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+.group-head{display:flex; align-items:center; gap:10px; margin-bottom:12px; cursor:pointer; user-select:none;}
+.group-head:hover{opacity:0.85;}
+.group-chevron{margin-left:auto; font-size:10px; color:var(--canvas-dim);}
+.expand-all-row{margin:2px 0 16px;}
+.expand-all-row a{font-size:12px; color:var(--gold); cursor:pointer; text-decoration:underline;}
+.load-more-btn{display:block; width:100%; margin:14px 0 4px; padding:10px 0; font-size:12px;}
 .group-head h3{font-size:15px; color:var(--canvas);}
 .group-head .swatch{width:11px; height:11px; border-radius:50%;}
 .group-head .count{font-size:12px; color:var(--canvas-dim);}
@@ -634,7 +639,7 @@ function badgeSVG(m, size){
   </svg>`;
 }
 
-let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null };
+let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{} };
 const app = document.getElementById("app");
 
 const HEX = {
@@ -1208,6 +1213,8 @@ function renderAddMountainSection(){
   </div>`;
 }
 
+const PAGE_SIZE = 12;
+
 function renderLog(){
   const filtered = getFiltered();
   let body = "";
@@ -1223,21 +1230,32 @@ function renderLog(){
       const cat = CAT(m.difficulty).label;
       (groups[cat] = groups[cat]||[]).push(m);
     });
-    GROUP_ORDER.forEach(cat=>{
+    const isSearching = state.search.trim().length > 0;
+    const presentCats = GROUP_ORDER.filter(cat=>groups[cat]);
+    const allExpanded = presentCats.length > 0 && presentCats.every(cat=>state.expandedGroups.has(cat));
+    body += `<div class="expand-all-row"><a data-action="toggle-expand-all">${allExpanded ? "Collapse all" : "Expand all"}</a></div>`;
+    presentCats.forEach(cat=>{
       const list = groups[cat];
-      if(!list) return;
       list.sort((a,b)=>b.maslNum-a.maslNum);
       const c = CAT(cat);
       const doneInGroup = list.filter(m=>state.hiked.has(m.id)).length;
+      const expanded = isSearching || state.expandedGroups.has(cat);
+      const visibleCount = state.visibleCounts["group:"+cat] || PAGE_SIZE;
+      const visibleList = list.slice(0, visibleCount);
+      const remaining = list.length - visibleList.length;
       body += `<div class="group">
-        <div class="group-head">
+        <div class="group-head" data-action="toggle-group" data-group="${esc(cat)}">
           <span class="swatch" style="background:${c.fill}"></span>
           <h3>${cat}</h3>
           <span class="count">${doneInGroup}/${list.length} badged</span>
+          <span class="group-chevron">${expanded ? "▲" : "▼"}</span>
         </div>
-        <div class="grid">
-          ${list.map(m=>cardHTML(m)).join("")}
-        </div>
+        ${expanded ? `
+          <div class="grid">
+            ${visibleList.map(m=>cardHTML(m)).join("")}
+          </div>
+          ${remaining > 0 ? `<button class="btn load-more-btn" data-action="load-more-group" data-group="${esc(cat)}">Show ${Math.min(PAGE_SIZE, remaining)} more (${remaining} left)</button>` : ``}
+        ` : ``}
       </div>`;
     });
   } else {
@@ -1245,7 +1263,11 @@ function renderLog(){
     if(state.sort === "elev-desc") list.sort((a,b)=>b.maslNum-a.maslNum);
     else if(state.sort === "elev-asc") list.sort((a,b)=>a.maslNum-b.maslNum);
     else if(state.sort === "name-asc") list.sort((a,b)=>a.name.localeCompare(b.name));
-    body = `<div class="grid">${list.map(m=>cardHTML(m)).join("")}</div>`;
+    const visibleCount = state.visibleCounts["flat"] || PAGE_SIZE;
+    const visibleList = list.slice(0, visibleCount);
+    const remaining = list.length - visibleList.length;
+    body = `<div class="grid">${visibleList.map(m=>cardHTML(m)).join("")}</div>
+      ${remaining > 0 ? `<button class="btn load-more-btn" data-action="load-more-flat">Show ${Math.min(PAGE_SIZE, remaining)} more (${remaining} left)</button>` : ``}`;
   }
   return renderControls() + renderAddMountainSection() + body;
 }
@@ -1547,6 +1569,7 @@ async function handleSignedIn(user){
 app.addEventListener("input", (e)=>{
   if(e.target.id === "search-input"){
     state.search = e.target.value;
+    state.visibleCounts = {};
     render();
     const el = document.getElementById("search-input");
     if(el){ el.focus(); const len = el.value.length; el.setSelectionRange(len, len); }
@@ -1556,14 +1579,17 @@ app.addEventListener("input", (e)=>{
 app.addEventListener("change", (e)=>{
   if(e.target.id === "sort-select"){
     state.sort = e.target.value;
+    state.visibleCounts = {};
     render();
   }
   if(e.target.id === "region-select"){
     state.region = e.target.value;
+    state.visibleCounts = {};
     render();
   }
   if(e.target.id === "status-select"){
     state.status = e.target.value;
+    state.visibleCounts = {};
     render();
   }
   if(e.target.id === "rank-region-select"){
@@ -1607,6 +1633,41 @@ app.addEventListener("click", async (e)=>{
 
   const signOutBtn = e.target.closest('[data-action="sign-out"]');
   if(signOutBtn){ await signOutUser(); return; }
+
+  const toggleGroupBtn = e.target.closest('[data-action="toggle-group"]');
+  if(toggleGroupBtn){
+    const cat = toggleGroupBtn.dataset.group;
+    if(state.expandedGroups.has(cat)) state.expandedGroups.delete(cat);
+    else state.expandedGroups.add(cat);
+    render();
+    return;
+  }
+
+  const toggleExpandAllBtn = e.target.closest('[data-action="toggle-expand-all"]');
+  if(toggleExpandAllBtn){
+    const filtered = getFiltered();
+    const cats = new Set(filtered.map(m=>CAT(m.difficulty).label));
+    const allExpanded = Array.from(cats).every(c=>state.expandedGroups.has(c));
+    state.expandedGroups = allExpanded ? new Set() : cats;
+    render();
+    return;
+  }
+
+  const loadMoreGroupBtn = e.target.closest('[data-action="load-more-group"]');
+  if(loadMoreGroupBtn){
+    const cat = loadMoreGroupBtn.dataset.group;
+    const key = "group:"+cat;
+    state.visibleCounts[key] = (state.visibleCounts[key] || PAGE_SIZE) + PAGE_SIZE;
+    render();
+    return;
+  }
+
+  const loadMoreFlatBtn = e.target.closest('[data-action="load-more-flat"]');
+  if(loadMoreFlatBtn){
+    state.visibleCounts["flat"] = (state.visibleCounts["flat"] || PAGE_SIZE) + PAGE_SIZE;
+    render();
+    return;
+  }
 
   const tabBtn = e.target.closest("[data-tab]");
   if(tabBtn){ state.view = tabBtn.dataset.tab; render(); return; }
