@@ -202,6 +202,29 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .photo-lightbox{position:fixed; inset:0; background:rgba(10,14,10,0.85); display:flex; align-items:center; justify-content:center; z-index:110; padding:24px; cursor:zoom-out;}
 .photo-lightbox img{max-width:90vw; max-height:85vh; border-radius:6px;}
 
+.post-composer{background:var(--canvas); color:var(--ink); border-radius:6px; padding:16px; border:1px dashed var(--thread); margin-bottom:22px;}
+.post-composer textarea{width:100%; padding:9px 12px; font-size:14px; border:1px solid var(--thread); border-radius:3px; background:#fffdf4; color:var(--ink); font-family:'Inter',sans-serif; resize:vertical; margin-bottom:10px;}
+.composer-row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.composer-row select{padding:8px 10px; font-size:12.5px; border:1px solid var(--thread); border-radius:3px; background:#fffdf4; color:var(--ink); font-family:'Inter',sans-serif; flex:1; min-width:160px;}
+.composer-row input[type=file]{font-size:12px; flex:1; min-width:160px;}
+.feed-list{display:flex; flex-direction:column; gap:16px;}
+.post-card{background:var(--canvas); color:var(--ink); border-radius:6px; padding:16px 18px; border:1px solid rgba(0,0,0,0.06);}
+.post-head{display:flex; align-items:baseline; gap:8px; margin-bottom:6px;}
+.post-author{font-family:'Oswald',sans-serif; font-weight:600; font-size:14px;}
+.post-time{font-size:11.5px; color:var(--ink-soft);}
+.post-tag{display:inline-block; font-size:11.5px; color:var(--rust); font-weight:600; margin-bottom:6px;}
+.post-content{font-size:14px; line-height:1.5; margin:0 0 10px; white-space:pre-wrap;}
+.post-photo{max-width:100%; border-radius:5px; display:block; margin-bottom:10px; cursor:zoom-in;}
+.post-actions{display:flex; gap:14px; padding-top:8px; border-top:1px solid rgba(0,0,0,0.08);}
+.post-like-btn, .post-comment-btn{background:none; border:none; cursor:pointer; font-size:13px; color:var(--ink-soft); font-family:'Inter',sans-serif; padding:4px 2px;}
+.post-like-btn.liked{color:var(--rust); font-weight:600;}
+.comments-list{margin-top:10px; padding-top:10px; border-top:1px solid rgba(0,0,0,0.08); display:flex; flex-direction:column; gap:6px;}
+.comment-row{font-size:12.5px; line-height:1.5;}
+.comment-row b{font-family:'Oswald',sans-serif; font-weight:600; margin-right:4px;}
+.comment-input-row{display:flex; gap:8px; margin-top:6px;}
+.comment-input-row input{flex:1; padding:7px 10px; font-size:12.5px; border:1px solid var(--thread); border-radius:3px; background:#fffdf4; color:var(--ink); font-family:'Inter',sans-serif;}
+.comment-input-row .btn{padding:7px 14px; font-size:11px;}
+
 @media (max-width: 640px){
   .wrap{padding:18px 14px 60px;}
   .topbar{flex-direction:column; align-items:flex-start; gap:12px; margin-bottom:16px;}
@@ -639,7 +662,7 @@ function badgeSVG(m, size){
   </svg>`;
 }
 
-let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{} };
+let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false };
 const app = document.getElementById("app");
 
 const HEX = {
@@ -846,6 +869,9 @@ async function handleModalConfirm(){
       state.hikedPhotos = {};
       await loadLeaderboard();
     } else showToast("Could not reset: "+error.message);
+
+  } else if(modal.action === "delete-post"){
+    await deletePostById(modal.payload);
   }
   state.modal = null;
   render();
@@ -981,6 +1007,121 @@ async function uploadClimbPhoto(mountainId, file){
   return { url: data.publicUrl + "?t=" + Date.now() };
 }
 
+// ---- Feed: posts, likes, comments ----
+function timeAgo(dateStr){
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff/60000);
+  if(mins < 1) return "just now";
+  if(mins < 60) return mins+"m ago";
+  const hrs = Math.floor(mins/60);
+  if(hrs < 24) return hrs+"h ago";
+  const days = Math.floor(hrs/24);
+  if(days < 30) return days+"d ago";
+  return formatDate(dateStr.slice(0,10));
+}
+
+async function uploadPostPhoto(clientId, file){
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g,"") || "jpg";
+  const path = `${state.user.id}/post-${clientId}.${ext}`;
+  const { error: upErr } = await sb.storage.from("climb-photos").upload(path, file, { upsert: true });
+  if(upErr) return { error: upErr };
+  const { data } = sb.storage.from("climb-photos").getPublicUrl(path);
+  return { url: data.publicUrl + "?t=" + Date.now() };
+}
+
+async function loadFeed(){
+  const { data: postsData, error } = await sb.from("posts")
+    .select("id, user_id, content, photo_url, mountain_id, created_at, profiles(display_name)")
+    .order("created_at", { ascending:false })
+    .limit(50);
+  if(error){ state.feedPosts = []; return; }
+  const postIds = (postsData||[]).map(p=>p.id);
+  let likesData = [], commentsData = [];
+  if(postIds.length){
+    const likesRes = await sb.from("post_likes").select("post_id, user_id").in("post_id", postIds);
+    likesData = likesRes.data || [];
+    const commentsRes = await sb.from("post_comments").select("id, post_id, user_id, content, created_at, profiles(display_name)").in("post_id", postIds).order("created_at", {ascending:true});
+    commentsData = commentsRes.data || [];
+  }
+  state.feedPosts = (postsData||[]).map(p=>{
+    const likes = likesData.filter(l=>l.post_id===p.id);
+    const comments = commentsData.filter(c=>c.post_id===p.id);
+    const mountain = p.mountain_id ? MOUNTAINS.find(m=>m.id===p.mountain_id) : null;
+    return {
+      id: p.id,
+      userId: p.user_id,
+      authorName: p.profiles ? p.profiles.display_name : "Hiker",
+      content: p.content,
+      photoUrl: p.photo_url,
+      mountainName: mountain ? mountain.name : null,
+      createdAt: p.created_at,
+      likeCount: likes.length,
+      likedByMe: likes.some(l=>l.user_id===state.user.id),
+      comments: comments.map(c=>({ id:c.id, userId:c.user_id, authorName: c.profiles?c.profiles.display_name:"Hiker", content:c.content, createdAt:c.created_at }))
+    };
+  });
+  state.feedLoaded = true;
+}
+
+async function createPost(){
+  const textEl = document.getElementById("post-content");
+  const content = textEl ? textEl.value.trim() : "";
+  const fileInput = document.getElementById("post-photo");
+  const file = fileInput && fileInput.files && fileInput.files[0];
+  const mountainSelect = document.getElementById("post-mountain");
+  const mountainId = mountainSelect && mountainSelect.value ? mountainSelect.value : null;
+  if(!content && !file){ showToast("Write something or attach a photo first."); return; }
+
+  let photoUrl = null;
+  if(file){
+    const clientId = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    const upload = await uploadPostPhoto(clientId, file);
+    if(upload.error){ showToast("Could not upload photo: "+upload.error.message); return; }
+    photoUrl = upload.url;
+  }
+  const { error } = await sb.from("posts").insert({ user_id: state.user.id, content: content || null, photo_url: photoUrl, mountain_id: mountainId });
+  if(error){ showToast("Could not post: "+error.message); return; }
+  await loadFeed();
+  render();
+}
+
+async function toggleLike(postId){
+  const post = state.feedPosts.find(p=>p.id===postId);
+  if(!post) return;
+  if(post.likedByMe){
+    const { error } = await sb.from("post_likes").delete().eq("post_id", postId).eq("user_id", state.user.id);
+    if(!error){ post.likedByMe = false; post.likeCount--; render(); }
+  } else {
+    const { error } = await sb.from("post_likes").insert({ post_id: postId, user_id: state.user.id });
+    if(!error){ post.likedByMe = true; post.likeCount++; render(); }
+  }
+}
+
+async function addComment(postId){
+  const input = document.getElementById("comment-input-"+postId);
+  const content = input ? input.value.trim() : "";
+  if(!content) return;
+  const { data, error } = await sb.from("post_comments").insert({ post_id: postId, user_id: state.user.id, content }).select().single();
+  if(error){ showToast("Could not comment: "+error.message); return; }
+  const post = state.feedPosts.find(p=>p.id===postId);
+  if(post){ post.comments.push({ id:data.id, userId: state.user.id, authorName: state.profile.display_name, content: data.content, createdAt: data.created_at }); }
+  render();
+}
+
+async function deletePostById(postId){
+  const { error } = await sb.from("posts").delete().eq("id", postId);
+  if(error){ showToast("Could not delete post: "+error.message); return; }
+  state.feedPosts = state.feedPosts.filter(p=>p.id!==postId);
+}
+
+async function deleteCommentById(postId, commentId){
+  const { error } = await sb.from("post_comments").delete().eq("id", commentId);
+  if(error){ showToast("Could not delete comment: "+error.message); return; }
+  const post = state.feedPosts.find(p=>p.id===postId);
+  if(post){ post.comments = post.comments.filter(c=>c.id!==commentId); }
+  render();
+}
+
 function buildRidgeSVG(){
   if(MOUNTAINS.length === 0){
     return `<svg viewBox="0 0 900 200" xmlns="http://www.w3.org/2000/svg"></svg>`;
@@ -1059,7 +1200,11 @@ function renderCelebration(){
 function render(){
   if(state.loading){ app.innerHTML = `<div class="wrap"></div>`; return; }
   if(!state.user || !state.profile){ renderAuth(); return; }
-  app.innerHTML = renderHeader() + (state.view==="log" ? renderLog() : state.view==="wall" ? renderWall() : renderRankings())
+  const body = state.view==="log" ? renderLog()
+    : state.view==="feed" ? renderFeed()
+    : state.view==="wall" ? renderWall()
+    : renderRankings();
+  app.innerHTML = renderHeader() + body
     + (state.toast ? `<div class="toast">${esc(state.toast)}</div>` : ``)
     + renderModal()
     + renderCelebration()
@@ -1129,6 +1274,7 @@ function renderHeader(){
     <div class="brand">SUMMIT LOG <span>·</span> Philippines</div>
     <div class="tabs">
       <button class="tab-btn ${state.view==='log'?'active':''}" data-tab="log">Trail log</button>
+      <button class="tab-btn ${state.view==='feed'?'active':''}" data-tab="feed">Feed</button>
       <button class="tab-btn ${state.view==='wall'?'active':''}" data-tab="wall">Badge wall</button>
       <button class="tab-btn ${state.view==='rankings'?'active':''}" data-tab="rankings">Rankings</button>
     </div>
@@ -1364,6 +1510,58 @@ function renderStats(){
       ${renderBarRows(byDiff, GROUP_ORDER, k=>CAT(k).fill)}
     </div>
   </div>`;
+}
+
+function renderFeed(){
+  const mountainOptions = MOUNTAINS.slice().sort((a,b)=>a.name.localeCompare(b.name))
+    .map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join("");
+  const composer = `<div class="post-composer">
+    <textarea id="post-content" rows="3" placeholder="Share something with other hikers..."></textarea>
+    <div class="composer-row">
+      <select id="post-mountain">
+        <option value="">No mountain tagged</option>
+        ${mountainOptions}
+      </select>
+      <input type="file" id="post-photo" accept="image/*">
+    </div>
+    <button class="btn" data-action="submit-post" style="margin-top:10px;">Post</button>
+  </div>`;
+
+  if(!state.feedPosts || state.feedPosts.length === 0){
+    return composer + `<div class="empty" style="margin-top:20px;">No posts yet. Be the first to share a climb.</div>`;
+  }
+
+  const posts = state.feedPosts.map(p=>{
+    const commentsOpen = state.expandedComments.has(p.id);
+    return `<div class="post-card">
+      <div class="post-head">
+        <div class="post-author">${esc(p.authorName)}</div>
+        <div class="post-time">${timeAgo(p.createdAt)}</div>
+        ${p.userId === state.user.id ? `<a data-action="delete-post" data-post="${p.id}" style="margin-left:auto; font-size:11px; color:var(--rust); text-decoration:underline; cursor:pointer;">delete</a>` : ``}
+      </div>
+      ${p.mountainName ? `<div class="post-tag">📍 ${esc(p.mountainName)}</div>` : ``}
+      ${p.content ? `<p class="post-content">${esc(p.content)}</p>` : ``}
+      ${p.photoUrl ? `<img class="post-photo" src="${esc(p.photoUrl)}" data-view-photo="${esc(p.photoUrl)}">` : ``}
+      <div class="post-actions">
+        <button class="post-like-btn ${p.likedByMe?'liked':''}" data-action="toggle-like" data-post="${p.id}">${p.likedByMe ? "♥" : "♡"} ${p.likeCount}</button>
+        <button class="post-comment-btn" data-action="toggle-comments" data-post="${p.id}">💬 ${p.comments.length}</button>
+      </div>
+      ${commentsOpen ? `
+        <div class="comments-list">
+          ${p.comments.map(c=>`<div class="comment-row">
+            <b>${esc(c.authorName)}</b>${esc(c.content)}
+            ${c.userId===state.user.id ? ` <a data-action="delete-comment" data-comment="${c.id}" data-post="${p.id}" style="font-size:10px; color:var(--rust); margin-left:4px; cursor:pointer;">x</a>` : ``}
+          </div>`).join("") || `<div style="font-size:12px; color:var(--ink-soft);">No comments yet.</div>`}
+          <div class="comment-input-row">
+            <input type="text" id="comment-input-${p.id}" placeholder="Write a comment...">
+            <button class="btn" data-action="submit-comment" data-post="${p.id}">Send</button>
+          </div>
+        </div>
+      ` : ``}
+    </div>`;
+  }).join("");
+
+  return composer + `<div class="feed-list">${posts}</div>`;
 }
 
 function renderWall(){
@@ -1616,6 +1814,10 @@ app.addEventListener("keydown", (e)=>{
     e.preventDefault();
     handleModalConfirm();
   }
+  if(e.key === "Enter" && e.target.id && e.target.id.startsWith("comment-input-")){
+    e.preventDefault();
+    addComment(e.target.id.replace("comment-input-",""));
+  }
 });
 
 app.addEventListener("click", async (e)=>{
@@ -1670,7 +1872,43 @@ app.addEventListener("click", async (e)=>{
   }
 
   const tabBtn = e.target.closest("[data-tab]");
-  if(tabBtn){ state.view = tabBtn.dataset.tab; render(); return; }
+  if(tabBtn){
+    state.view = tabBtn.dataset.tab;
+    render();
+    if(state.view === "feed" && !state.feedLoaded){
+      await loadFeed();
+      render();
+    }
+    return;
+  }
+
+  const submitPostBtn = e.target.closest('[data-action="submit-post"]');
+  if(submitPostBtn){ await createPost(); return; }
+
+  const likeBtn = e.target.closest('[data-action="toggle-like"]');
+  if(likeBtn){ await toggleLike(likeBtn.dataset.post); return; }
+
+  const toggleCommentsBtn = e.target.closest('[data-action="toggle-comments"]');
+  if(toggleCommentsBtn){
+    const postId = toggleCommentsBtn.dataset.post;
+    if(state.expandedComments.has(postId)) state.expandedComments.delete(postId);
+    else state.expandedComments.add(postId);
+    render();
+    return;
+  }
+
+  const submitCommentBtn = e.target.closest('[data-action="submit-comment"]');
+  if(submitCommentBtn){ await addComment(submitCommentBtn.dataset.post); return; }
+
+  const deletePostBtn = e.target.closest('[data-action="delete-post"]');
+  if(deletePostBtn){
+    state.modal = { kind:"confirm", message:"Delete this post? This can't be undone.", action:"delete-post", payload:deletePostBtn.dataset.post, confirmLabel:"Delete" };
+    render();
+    return;
+  }
+
+  const deleteCommentBtn = e.target.closest('[data-action="delete-comment"]');
+  if(deleteCommentBtn){ await deleteCommentById(deleteCommentBtn.dataset.post, deleteCommentBtn.dataset.comment); return; }
 
   const toggleBtn = e.target.closest("[data-toggle]");
   if(toggleBtn){
