@@ -53,6 +53,9 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 }
 .tab-btn.active{ background:var(--canvas); color:var(--ink); border-color:var(--canvas); font-weight:600;}
 .notif-badge{position:absolute; top:-7px; right:-7px; background:var(--rust); color:#fff3e9; font-size:10px; font-weight:700; min-width:16px; height:16px; padding:0 3px; border-radius:8px; display:flex; align-items:center; justify-content:center; line-height:1;}
+.admin-tag{display:inline-block; background:var(--rust); color:#fff3e9; font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding:2px 6px; border-radius:3px; vertical-align:middle; margin-left:2px;}
+.report-link{background:none; border:none; cursor:pointer; font-size:11px; color:var(--ink-soft); font-family:'Inter',sans-serif; padding:4px 2px;}
+.report-link:hover{color:var(--rust);}
 
 .hero{margin:10px 0 26px;}
 .hero-stats{display:flex; gap:28px; flex-wrap:wrap; align-items:flex-end; margin-bottom:14px;}
@@ -667,7 +670,7 @@ function badgeSVG(m, size){
   </svg>`;
 }
 
-let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null };
+let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null, reports:[] };
 const app = document.getElementById("app");
 
 const HEX = {
@@ -807,6 +810,12 @@ async function handleModalConfirm(){
     state.authError = null;
     if(error){ showToast("Could not change password: "+error.message); }
     else{ showToast("Password updated."); }
+
+  } else if(modal.kind === "report" && (modal.action === "report-post" || modal.action === "report-comment")){
+    const inputEl = document.getElementById("modal-input");
+    const reason = inputEl ? inputEl.value.trim() : "";
+    const targetType = modal.action === "report-post" ? "post" : "comment";
+    await submitReport(targetType, modal.payload, reason);
 
   } else if(modal.kind === "date" && (modal.action === "mark-hiked" || modal.action === "edit-date")){
     const inputEl = document.getElementById("modal-input");
@@ -948,7 +957,8 @@ async function loadMountains(){
     place: row.place,
     difficulty: row.difficulty,
     maslNum: row.masl_num,
-    maslRaw: row.masl_raw
+    maslRaw: row.masl_raw,
+    createdBy: row.created_by
   }));
 }
 
@@ -1130,6 +1140,51 @@ async function deleteCommentById(postId, commentId){
   render();
 }
 
+// ---- Reporting ----
+async function submitReport(targetType, targetId, reason){
+  const { error } = await sb.from("reports").insert({ reporter_id: state.user.id, target_type: targetType, target_id: targetId, reason: reason || null });
+  if(error){ showToast("Could not submit report: "+error.message); return; }
+  showToast("Reported. Thanks for flagging this.");
+}
+
+async function loadReports(){
+  const { data, error } = await sb.from("reports").select("*").eq("resolved", false).order("created_at", {ascending:false});
+  if(error){ state.reports = []; return; }
+  const enriched = [];
+  for(const r of (data||[])){
+    let content = "", authorName = "Unknown";
+    if(r.target_type === "post"){
+      const { data: post } = await sb.from("posts").select("content, user_id, profiles(display_name)").eq("id", r.target_id).single();
+      if(post){ content = post.content || "(photo only, no text)"; authorName = post.profiles ? post.profiles.display_name : "Unknown"; }
+      else content = "(this post was already removed)";
+    } else {
+      const { data: comment } = await sb.from("post_comments").select("content, user_id, profiles(display_name)").eq("id", r.target_id).single();
+      if(comment){ content = comment.content; authorName = comment.profiles ? comment.profiles.display_name : "Unknown"; }
+      else content = "(this comment was already removed)";
+    }
+    enriched.push({ id:r.id, targetType:r.target_type, targetId:r.target_id, reason:r.reason, content, authorName, createdAt:r.created_at });
+  }
+  state.reports = enriched;
+}
+
+async function resolveReport(reportId, removeContent){
+  const report = state.reports.find(r=>r.id===reportId);
+  if(!report) return;
+  if(removeContent){
+    if(report.targetType === "post"){
+      await sb.from("posts").delete().eq("id", report.targetId);
+      state.feedPosts = state.feedPosts.filter(p=>p.id!==report.targetId);
+    } else {
+      await sb.from("post_comments").delete().eq("id", report.targetId);
+      state.feedPosts.forEach(p=>{ p.comments = p.comments.filter(c=>c.id!==report.targetId); });
+    }
+  }
+  const { error } = await sb.from("reports").update({ resolved:true }).eq("id", reportId);
+  if(error){ showToast("Could not update report: "+error.message); return; }
+  state.reports = state.reports.filter(r=>r.id!==reportId);
+  render();
+}
+
 // ---- Public profiles (view another hiker's badge wall) ----
 async function openUserProfile(userId, displayName){
   state.profileReturnView = state.view;
@@ -1233,6 +1288,7 @@ function renderModal(){
       <p>${esc(m.message)}</p>
       ${m.kind === 'prompt' ? `<input type="text" id="modal-input" value="${esc(m.defaultValue||'')}">` : ``}
       ${m.kind === 'password' ? `<input type="password" id="modal-input" placeholder="New password" autocomplete="new-password">` : ``}
+      ${m.kind === 'report' ? `<textarea id="modal-input" rows="3" placeholder="Reason (optional)"></textarea>` : ``}
       ${m.kind === 'date' ? `
         <label class="modal-field-label">Date</label>
         <input type="date" id="modal-input" value="${esc(m.defaultValue||'')}">
@@ -1272,12 +1328,33 @@ function render(){
     : state.view==="feed" ? renderFeed()
     : state.view==="wall" ? renderWall()
     : state.view==="profile" ? renderProfile()
+    : state.view==="reports" ? renderReportsPanel()
     : renderRankings();
   app.innerHTML = renderHeader() + body
     + (state.toast ? `<div class="toast">${esc(state.toast)}</div>` : ``)
     + renderModal()
     + renderCelebration()
     + (state.lightboxUrl ? `<div class="photo-lightbox"><img src="${esc(state.lightboxUrl)}"></div>` : ``);
+}
+
+function renderReportsPanel(){
+  if(!isAdmin()) return `<div class="empty">Admins only.</div>`;
+  if(!state.reports || state.reports.length === 0) return `<div class="empty">No open reports. Nice and quiet.</div>`;
+  return `<div class="feed-list">${state.reports.map(r=>`
+    <div class="post-card">
+      <div class="post-head">
+        <div class="post-author">${esc(r.authorName)}</div>
+        <div class="post-time">${timeAgo(r.createdAt)}</div>
+        <div style="margin-left:auto; font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft);">${esc(r.targetType)}</div>
+      </div>
+      <p class="post-content">${esc(r.content)}</p>
+      ${r.reason ? `<p style="font-size:12px; color:var(--ink-soft); font-style:italic; margin:-4px 0 10px;">Reason given: ${esc(r.reason)}</p>` : ``}
+      <div class="post-actions">
+        <button class="btn" data-action="resolve-report-remove" data-report="${r.id}" style="font-size:11px; padding:7px 14px;">Remove & resolve</button>
+        <button class="toggle-btn" data-action="resolve-report-dismiss" data-report="${r.id}" style="width:auto; font-size:11px; padding:7px 14px; margin-top:0;">Dismiss</button>
+      </div>
+    </div>
+  `).join("")}</div>`;
 }
 
 function renderAuth(){
@@ -1346,9 +1423,10 @@ function renderHeader(){
       <button class="tab-btn ${state.view==='feed'?'active':''}" data-tab="feed">Feed${state.notificationCount > 0 ? `<span class="notif-badge">${state.notificationCount > 9 ? "9+" : state.notificationCount}</span>` : ``}</button>
       <button class="tab-btn ${state.view==='wall'?'active':''}" data-tab="wall">Badge wall</button>
       <button class="tab-btn ${state.view==='rankings'?'active':''}" data-tab="rankings">Rankings</button>
+      ${isAdmin() ? `<button class="tab-btn ${state.view==='reports'?'active':''}" data-tab="reports">Reports${state.reports && state.reports.length ? `<span class="notif-badge">${state.reports.length>9?'9+':state.reports.length}</span>` : ``}</button>` : ``}
     </div>
   </div>
-  <div class="namebar">Climbing as <b style="color:var(--canvas)">${esc(state.profile.display_name)}</b> · <a data-action="rename">change name</a> · <a data-action="change-password">change password</a> · <a data-action="sign-out">sign out</a></div>
+  <div class="namebar">Climbing as <b style="color:var(--canvas)">${esc(state.profile.display_name)}</b>${isAdmin() ? ` <span class="admin-tag">admin</span>` : ``} · <a data-action="rename">change name</a> · <a data-action="change-password">change password</a> · <a data-action="sign-out">sign out</a></div>
   ${state.view==='log' ? `<div class="edit-note">See wrong info, or a mountain that's missing? Use "Edit" on a card, or add a new one below — changes are shared and show for everyone.</div>` : ``}
   ${state.view==='log' ? `
   <div class="hero">
@@ -1494,11 +1572,12 @@ function cardHTML(m){
   const dateStr = state.hikedDates[m.id];
   const notesStr = state.hikedNotes[m.id];
   const photoUrl = state.hikedPhotos[m.id];
+  const canEdit = canEditMountain(m);
   return `<div class="card ${done?'done':''}">
     ${done ? `<div class="stamp">Summited</div>` : ``}
     <div class="card-top">
       ${badgeSVG(m)}
-      <a class="edit-link" data-edit="${m.id}">Edit</a>
+      ${canEdit ? `<a class="edit-link" data-edit="${m.id}">Edit</a>` : ``}
     </div>
     <p class="card-name">${esc(m.name)}</p>
     <p class="card-place">${esc(m.place)}</p>
@@ -1614,12 +1693,13 @@ function renderFeed(){
       <div class="post-actions">
         <button class="post-like-btn ${p.likedByMe?'liked':''}" data-action="toggle-like" data-post="${p.id}">${HEART_ICON(p.likedByMe)}${p.likeCount}</button>
         <button class="post-comment-btn" data-action="toggle-comments" data-post="${p.id}">${COMMENT_ICON()}${p.comments.length}</button>
+        ${p.userId !== state.user.id ? `<button class="report-link" data-action="open-report-post" data-post="${p.id}">🚩 Report</button>` : ``}
       </div>
       ${commentsOpen ? `
         <div class="comments-list">
           ${p.comments.map(c=>`<div class="comment-row">
             <b data-view-profile="${c.userId}" data-profile-name="${esc(c.authorName)}" style="cursor:pointer; text-decoration:underline; text-decoration-color:rgba(0,0,0,0.15);">${esc(c.authorName)}</b>${esc(c.content)}
-            ${c.userId===state.user.id ? ` <a data-action="delete-comment" data-comment="${c.id}" data-post="${p.id}" style="font-size:10px; color:var(--rust); margin-left:4px; cursor:pointer;">x</a>` : ``}
+            ${c.userId===state.user.id ? ` <a data-action="delete-comment" data-comment="${c.id}" data-post="${p.id}" style="font-size:10px; color:var(--rust); margin-left:4px; cursor:pointer;">x</a>` : ` <a data-action="open-report-comment" data-comment="${c.id}" style="font-size:10px; color:var(--ink-soft); margin-left:4px; cursor:pointer;">report</a>`}
           </div>`).join("") || `<div style="font-size:12px; color:var(--ink-soft);">No comments yet.</div>`}
           <div class="comment-input-row">
             <input type="text" id="comment-input-${p.id}" placeholder="Write a comment...">
@@ -1737,6 +1817,9 @@ function renderRankings(){
 }
 
 function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function isAdmin(){ return !!(state.profile && state.profile.is_admin); }
+function canEditMountain(m){ return isAdmin() || (state.user && m.createdBy === state.user.id); }
 
 async function submitAuth(){
   const email = (document.getElementById("auth-email")||{}).value?.trim() || "";
@@ -1951,12 +2034,35 @@ app.addEventListener("click", async (e)=>{
       await loadFeed();
       await markNotificationsSeen();
       render();
+    } else if(state.view === "reports" && isAdmin()){
+      await loadReports();
+      render();
     } else {
       await refreshNotificationCount();
       render();
     }
     return;
   }
+
+  const openReportPostBtn = e.target.closest('[data-action="open-report-post"]');
+  if(openReportPostBtn){
+    state.modal = { kind:"report", message:"Report this post? Add an optional reason.", action:"report-post", payload:openReportPostBtn.dataset.post, confirmLabel:"Report" };
+    render();
+    return;
+  }
+
+  const openReportCommentBtn = e.target.closest('[data-action="open-report-comment"]');
+  if(openReportCommentBtn){
+    state.modal = { kind:"report", message:"Report this comment? Add an optional reason.", action:"report-comment", payload:openReportCommentBtn.dataset.comment, confirmLabel:"Report" };
+    render();
+    return;
+  }
+
+  const resolveRemoveBtn = e.target.closest('[data-action="resolve-report-remove"]');
+  if(resolveRemoveBtn){ await resolveReport(resolveRemoveBtn.dataset.report, true); return; }
+
+  const resolveDismissBtn = e.target.closest('[data-action="resolve-report-dismiss"]');
+  if(resolveDismissBtn){ await resolveReport(resolveDismissBtn.dataset.report, false); return; }
 
   const viewProfileEl = e.target.closest("[data-view-profile]");
   if(viewProfileEl){
@@ -2046,7 +2152,7 @@ app.addEventListener("click", async (e)=>{
       name, place: place || "Philippines", difficulty, masl_num: maslNum, masl_raw: maslRaw, created_by: state.user.id
     }).select().single();
     if(error){ showToast("Could not add mountain: "+error.message); return; }
-    MOUNTAINS.push({ id:data.id, legacyId:data.legacy_id, name:data.name, place:data.place, difficulty:data.difficulty, maslNum:data.masl_num, maslRaw:data.masl_raw });
+    MOUNTAINS.push({ id:data.id, legacyId:data.legacy_id, name:data.name, place:data.place, difficulty:data.difficulty, maslNum:data.masl_num, maslRaw:data.masl_raw, createdBy:data.created_by });
     state.addingMountain = false;
     render();
     return;
