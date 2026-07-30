@@ -231,6 +231,11 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .comment-input-row{display:flex; gap:8px; margin-top:6px;}
 .comment-input-row input{flex:1; padding:7px 10px; font-size:12.5px; border:1px solid var(--thread); border-radius:3px; background:#fffdf4; color:var(--ink); font-family:'Inter',sans-serif;}
 .comment-input-row .btn{padding:7px 14px; font-size:11px;}
+.feed-filter-row{display:flex; gap:8px; margin-bottom:16px;}
+.feed-filter-btn{background:none; border:1px solid rgba(242,233,208,0.25); color:var(--canvas-dim); font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:0.03em; font-size:12px; padding:7px 14px; border-radius:20px; cursor:pointer;}
+.feed-filter-btn.active{background:var(--canvas); color:var(--ink); border-color:var(--canvas); font-weight:600;}
+.follow-btn{margin-top:10px;}
+.streak-line{font-size:13px; color:var(--gold); margin:4px 0 0;}
 
 @media (max-width: 640px){
   .wrap{padding:18px 14px 60px;}
@@ -670,7 +675,7 @@ function badgeSVG(m, size){
   </svg>`;
 }
 
-let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null, reports:[] };
+let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null, reports:[], following:new Set(), feedFilter:"all", replyingTo:null };
 const app = document.getElementById("app");
 
 const HEX = {
@@ -1058,7 +1063,7 @@ async function loadFeed(){
   if(postIds.length){
     const likesRes = await sb.from("post_likes").select("post_id, user_id").in("post_id", postIds);
     likesData = likesRes.data || [];
-    const commentsRes = await sb.from("post_comments").select("id, post_id, user_id, content, created_at, profiles(display_name)").in("post_id", postIds).order("created_at", {ascending:true});
+    const commentsRes = await sb.from("post_comments").select("id, post_id, user_id, content, created_at, parent_comment_id, profiles(display_name)").in("post_id", postIds).order("created_at", {ascending:true});
     commentsData = commentsRes.data || [];
   }
   state.feedPosts = (postsData||[]).map(p=>{
@@ -1075,7 +1080,7 @@ async function loadFeed(){
       createdAt: p.created_at,
       likeCount: likes.length,
       likedByMe: likes.some(l=>l.user_id===state.user.id),
-      comments: comments.map(c=>({ id:c.id, userId:c.user_id, authorName: c.profiles?c.profiles.display_name:"Hiker", content:c.content, createdAt:c.created_at }))
+      comments: comments.map(c=>({ id:c.id, userId:c.user_id, authorName: c.profiles?c.profiles.display_name:"Hiker", content:c.content, createdAt:c.created_at, parentId:c.parent_comment_id||null }))
     };
   });
   state.feedLoaded = true;
@@ -1115,15 +1120,67 @@ async function toggleLike(postId){
   }
 }
 
-async function addComment(postId){
-  const input = document.getElementById("comment-input-"+postId);
+async function addComment(postId, parentId){
+  const inputId = parentId ? "reply-input-"+parentId : "comment-input-"+postId;
+  const input = document.getElementById(inputId);
   const content = input ? input.value.trim() : "";
   if(!content) return;
-  const { data, error } = await sb.from("post_comments").insert({ post_id: postId, user_id: state.user.id, content }).select().single();
+  const { data, error } = await sb.from("post_comments").insert({ post_id: postId, user_id: state.user.id, content, parent_comment_id: parentId || null }).select().single();
   if(error){ showToast("Could not comment: "+error.message); return; }
   const post = state.feedPosts.find(p=>p.id===postId);
-  if(post){ post.comments.push({ id:data.id, userId: state.user.id, authorName: state.profile.display_name, content: data.content, createdAt: data.created_at }); }
+  if(post){ post.comments.push({ id:data.id, userId: state.user.id, authorName: state.profile.display_name, content: data.content, createdAt: data.created_at, parentId: data.parent_comment_id || null }); }
+  state.replyingTo = null;
   render();
+}
+
+// ---- Follow / friends ----
+async function loadFollowing(){
+  const { data, error } = await sb.from("follows").select("following_id").eq("follower_id", state.user.id);
+  state.following = new Set(error ? [] : (data||[]).map(r=>r.following_id));
+}
+
+async function toggleFollow(userId){
+  if(state.following.has(userId)){
+    const { error } = await sb.from("follows").delete().eq("follower_id", state.user.id).eq("following_id", userId);
+    if(!error) state.following.delete(userId);
+    else { showToast("Could not unfollow: "+error.message); return; }
+  } else {
+    const { error } = await sb.from("follows").insert({ follower_id: state.user.id, following_id: userId });
+    if(!error) state.following.add(userId);
+    else { showToast("Could not follow: "+error.message); return; }
+  }
+  render();
+}
+
+async function loadFollowCounts(userId){
+  const { data: followers } = await sb.from("follows").select("id").eq("following_id", userId);
+  const { data: followingList } = await sb.from("follows").select("id").eq("follower_id", userId);
+  return { followers: (followers||[]).length, following: (followingList||[]).length };
+}
+
+// ---- Streaks: consecutive weeks with at least one dated climb ----
+function computeStreakWeeks(hikedDatesMap){
+  const dates = Object.values(hikedDatesMap||{}).filter(Boolean).map(d=>new Date(d+"T00:00:00"));
+  if(dates.length === 0) return 0;
+  function mondayOf(d){
+    const day = d.getDay();
+    const diff = (day+6)%7;
+    const m = new Date(d);
+    m.setDate(d.getDate()-diff);
+    m.setHours(0,0,0,0);
+    return m;
+  }
+  const weekKeys = new Set(dates.map(d=>mondayOf(d).toISOString().slice(0,10)));
+  let cursor = mondayOf(new Date());
+  if(!weekKeys.has(cursor.toISOString().slice(0,10))){
+    cursor.setDate(cursor.getDate()-7);
+  }
+  let streak = 0;
+  while(weekKeys.has(cursor.toISOString().slice(0,10))){
+    streak++;
+    cursor.setDate(cursor.getDate()-7);
+  }
+  return streak;
 }
 
 async function deletePostById(postId){
@@ -1195,7 +1252,8 @@ async function openUserProfile(userId, displayName){
   if(!error){
     (data||[]).forEach(row => { hiked.add(row.mountain_id); dates[row.mountain_id] = row.climbed_on; });
   }
-  state.viewingProfile = { userId, displayName, hiked, dates };
+  const counts = await loadFollowCounts(userId);
+  state.viewingProfile = { userId, displayName, hiked, dates, followerCount:counts.followers, followingCount:counts.following };
   state.view = "profile";
   state.loading = false;
   render();
@@ -1206,11 +1264,16 @@ function renderProfile(){
   if(!vp) return `<div class="empty">Hiker not found.</div>`;
   const done = MOUNTAINS.filter(m=>vp.hiked.has(m.id)).sort((a,b)=>b.maslNum-a.maslNum);
   const totalElev = done.reduce((s,m)=>s+m.maslNum,0);
+  const isMe = vp.userId === state.user.id;
+  const streak = computeStreakWeeks(vp.dates);
   return `
   <div class="wall-head">
     <a data-action="back-from-profile" style="font-size:12px; color:var(--gold); cursor:pointer; text-decoration:underline; display:inline-block; margin-bottom:10px;">← Back</a>
     <h3>${esc(vp.displayName)}'s badge wall</h3>
     <p>${done.length} peak${done.length!==1?'s':''} badged · ${totalElev.toLocaleString()} masl climbed total</p>
+    <p style="font-size:12.5px; color:var(--canvas-dim); margin:2px 0 0;">${vp.followerCount} follower${vp.followerCount!==1?'s':''} · ${vp.followingCount} following</p>
+    ${streak > 0 ? `<p class="streak-line">🔥 ${streak}-week climbing streak</p>` : ``}
+    ${!isMe ? `<button class="btn follow-btn" data-action="toggle-follow" data-user="${vp.userId}">${state.following.has(vp.userId) ? "Following ✓" : "Follow"}</button>` : ``}
   </div>
   ${done.length === 0 ? `<div class="empty">No badges yet.</div>` : `
   <div class="wall-grid">
@@ -1660,6 +1723,24 @@ function renderStats(){
   </div>`;
 }
 
+function renderCommentThread(post, comment){
+  const replies = post.comments.filter(r=>r.parentId===comment.id);
+  const isReplying = state.replyingTo && state.replyingTo.postId===post.id && state.replyingTo.commentId===comment.id;
+  return `<div class="comment-row">
+    <b data-view-profile="${comment.userId}" data-profile-name="${esc(comment.authorName)}" style="cursor:pointer; text-decoration:underline; text-decoration-color:rgba(0,0,0,0.15);">${esc(comment.authorName)}</b>${esc(comment.content)}
+    ${comment.userId===state.user.id ? ` <a data-action="delete-comment" data-comment="${comment.id}" data-post="${post.id}" style="font-size:10px; color:var(--rust); margin-left:4px; cursor:pointer;">x</a>` : ` <a data-action="open-report-comment" data-comment="${comment.id}" style="font-size:10px; color:var(--ink-soft); margin-left:4px; cursor:pointer;">report</a>`}
+    <a data-action="toggle-reply" data-post="${post.id}" data-comment="${comment.id}" style="font-size:10px; color:var(--ink-soft); margin-left:6px; cursor:pointer; text-decoration:underline;">reply</a>
+    ${replies.map(r=>`<div class="reply-row" style="margin-left:20px; margin-top:5px; padding-left:8px; border-left:2px solid rgba(0,0,0,0.08);">
+      <b data-view-profile="${r.userId}" data-profile-name="${esc(r.authorName)}" style="cursor:pointer; text-decoration:underline; text-decoration-color:rgba(0,0,0,0.15);">${esc(r.authorName)}</b>${esc(r.content)}
+      ${r.userId===state.user.id ? ` <a data-action="delete-comment" data-comment="${r.id}" data-post="${post.id}" style="font-size:10px; color:var(--rust); margin-left:4px; cursor:pointer;">x</a>` : ` <a data-action="open-report-comment" data-comment="${r.id}" style="font-size:10px; color:var(--ink-soft); margin-left:4px; cursor:pointer;">report</a>`}
+    </div>`).join("")}
+    ${isReplying ? `<div class="comment-input-row" style="margin-left:20px; margin-top:6px;">
+      <input type="text" id="reply-input-${comment.id}" placeholder="Write a reply...">
+      <button class="btn" data-action="submit-reply" data-post="${post.id}" data-comment="${comment.id}">Send</button>
+    </div>` : ``}
+  </div>`;
+}
+
 function renderFeed(){
   const mountainOptions = MOUNTAINS.slice().sort((a,b)=>a.name.localeCompare(b.name))
     .map(m=>`<option value="${m.id}">${esc(m.name)}</option>`).join("");
@@ -1675,12 +1756,25 @@ function renderFeed(){
     <button class="btn" data-action="submit-post" style="margin-top:10px;">Post</button>
   </div>`;
 
-  if(!state.feedPosts || state.feedPosts.length === 0){
-    return composer + `<div class="empty" style="margin-top:20px;">No posts yet. Be the first to share a climb.</div>`;
+  const filterRow = `<div class="feed-filter-row">
+    <button class="feed-filter-btn ${state.feedFilter==='all'?'active':''}" data-action="feed-filter" data-filter="all">Everyone</button>
+    <button class="feed-filter-btn ${state.feedFilter==='following'?'active':''}" data-action="feed-filter" data-filter="following">Following</button>
+  </div>`;
+
+  const visiblePosts = state.feedFilter === "following"
+    ? state.feedPosts.filter(p => state.following.has(p.userId) || p.userId === state.user.id)
+    : state.feedPosts;
+
+  if(!visiblePosts || visiblePosts.length === 0){
+    const msg = state.feedFilter === "following"
+      ? "No posts from people you follow yet. Follow a hiker from their profile to see their climbs here."
+      : "No posts yet. Be the first to share a climb.";
+    return composer + filterRow + `<div class="empty" style="margin-top:20px;">${msg}</div>`;
   }
 
-  const posts = state.feedPosts.map(p=>{
+  const posts = visiblePosts.map(p=>{
     const commentsOpen = state.expandedComments.has(p.id);
+    const topLevelComments = p.comments.filter(c=>!c.parentId);
     return `<div class="post-card">
       <div class="post-head">
         <div class="post-author" data-view-profile="${p.userId}" data-profile-name="${esc(p.authorName)}">${esc(p.authorName)}</div>
@@ -1697,10 +1791,7 @@ function renderFeed(){
       </div>
       ${commentsOpen ? `
         <div class="comments-list">
-          ${p.comments.map(c=>`<div class="comment-row">
-            <b data-view-profile="${c.userId}" data-profile-name="${esc(c.authorName)}" style="cursor:pointer; text-decoration:underline; text-decoration-color:rgba(0,0,0,0.15);">${esc(c.authorName)}</b>${esc(c.content)}
-            ${c.userId===state.user.id ? ` <a data-action="delete-comment" data-comment="${c.id}" data-post="${p.id}" style="font-size:10px; color:var(--rust); margin-left:4px; cursor:pointer;">x</a>` : ` <a data-action="open-report-comment" data-comment="${c.id}" style="font-size:10px; color:var(--ink-soft); margin-left:4px; cursor:pointer;">report</a>`}
-          </div>`).join("") || `<div style="font-size:12px; color:var(--ink-soft);">No comments yet.</div>`}
+          ${topLevelComments.map(c=>renderCommentThread(p, c)).join("") || `<div style="font-size:12px; color:var(--ink-soft);">No comments yet.</div>`}
           <div class="comment-input-row">
             <input type="text" id="comment-input-${p.id}" placeholder="Write a comment...">
             <button class="btn" data-action="submit-comment" data-post="${p.id}">Send</button>
@@ -1710,7 +1801,7 @@ function renderFeed(){
     </div>`;
   }).join("");
 
-  return composer + `<div class="feed-list">${posts}</div>`;
+  return composer + filterRow + `<div class="feed-list">${posts}</div>`;
 }
 
 function renderWall(){
@@ -1719,6 +1810,7 @@ function renderWall(){
     return `<div class="empty">Your board is empty. Mark a mountain as hiked on the Trail log to add your first patch.</div>`;
   }
   const totalElev = done.reduce((s,m)=>s+m.maslNum,0);
+  const streak = computeStreakWeeks(state.hikedDates);
   const timelineSorted = done.slice().sort((a,b)=>{
     const da = state.hikedDates[a.id], db = state.hikedDates[b.id];
     if(da && db) return db.localeCompare(da);
@@ -1730,6 +1822,7 @@ function renderWall(){
   <div class="wall-head">
     <h3>My badge wall</h3>
     <p>${done.length} peak${done.length!==1?'s':''} badged · ${totalElev.toLocaleString()} masl climbed total</p>
+    ${streak > 0 ? `<p class="streak-line">🔥 ${streak}-week climbing streak</p>` : ``}
     <div class="wall-actions">
       <button class="btn" data-action="copy-summary">Copy my summary</button>
       <button class="toggle-btn" data-action="download-wall">Download as image</button>
@@ -1912,6 +2005,7 @@ async function handleSignedIn(user){
   await loadMountains();
   await loadMyClimbs();
   await loadLeaderboard();
+  await loadFollowing();
   await refreshNotificationCount();
   state.authLoading = false;
   state.loading = false;
@@ -1971,6 +2065,12 @@ app.addEventListener("keydown", (e)=>{
   if(e.key === "Enter" && e.target.id && e.target.id.startsWith("comment-input-")){
     e.preventDefault();
     addComment(e.target.id.replace("comment-input-",""));
+  }
+  if(e.key === "Enter" && e.target.id && e.target.id.startsWith("reply-input-")){
+    e.preventDefault();
+    if(state.replyingTo){
+      addComment(state.replyingTo.postId, state.replyingTo.commentId);
+    }
   }
 });
 
@@ -2098,6 +2198,24 @@ app.addEventListener("click", async (e)=>{
 
   const submitCommentBtn = e.target.closest('[data-action="submit-comment"]');
   if(submitCommentBtn){ await addComment(submitCommentBtn.dataset.post); return; }
+
+  const feedFilterBtn = e.target.closest('[data-action="feed-filter"]');
+  if(feedFilterBtn){ state.feedFilter = feedFilterBtn.dataset.filter; render(); return; }
+
+  const toggleReplyBtn = e.target.closest('[data-action="toggle-reply"]');
+  if(toggleReplyBtn){
+    const postId = toggleReplyBtn.dataset.post, commentId = toggleReplyBtn.dataset.comment;
+    if(state.replyingTo && state.replyingTo.postId===postId && state.replyingTo.commentId===commentId) state.replyingTo = null;
+    else state.replyingTo = { postId, commentId };
+    render();
+    return;
+  }
+
+  const submitReplyBtn = e.target.closest('[data-action="submit-reply"]');
+  if(submitReplyBtn){ await addComment(submitReplyBtn.dataset.post, submitReplyBtn.dataset.comment); return; }
+
+  const toggleFollowBtn = e.target.closest('[data-action="toggle-follow"]');
+  if(toggleFollowBtn){ await toggleFollow(toggleFollowBtn.dataset.user); return; }
 
   const deletePostBtn = e.target.closest('[data-action="delete-post"]');
   if(deletePostBtn){
