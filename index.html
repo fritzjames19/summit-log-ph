@@ -192,6 +192,8 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .edit-link{font-size:11px; color:var(--thread); text-decoration:underline; cursor:pointer; align-self:center;}
 .card.editing{border-color:var(--rust); border-style:solid;}
 .edit-field{margin-bottom:8px;}
+.edit-field-row{display:flex; gap:8px;}
+.edit-field-row .edit-field{flex:1;}
 .edit-field label{display:block; font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin-bottom:3px;}
 .edit-field input, .edit-field select{width:100%; padding:6px 8px; font-size:13px; border:1px solid var(--thread); border-radius:3px; background:#fffdf4; color:var(--ink); font-family:'Inter',sans-serif;}
 .edit-actions{display:flex; gap:8px; margin-top:6px;}
@@ -300,12 +302,15 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 <div class="wrap" id="app"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const SUPABASE_URL = "https://lpnpeyyoaeojznulhsce.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxwbnBleXlvYWVvanpudWxoc2NlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ3OTM3OTMsImV4cCI6MjEwMDM2OTc5M30.ZG8FSBj8FyWcGTXc-bIO1kyJLwxSLHzDWCrXAxtw7FM";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let MOUNTAINS = []; // loaded from Supabase at runtime
+let mountainMapInstance = null;
 
 function parseMaslNum(raw){
   const cleaned = String(raw).replace(/[~\s]/g,"").replace(/(\d),(\d)/g,"$1$2");
@@ -963,7 +968,9 @@ async function loadMountains(){
     difficulty: row.difficulty,
     maslNum: row.masl_num,
     maslRaw: row.masl_raw,
-    createdBy: row.created_by
+    createdBy: row.created_by,
+    lat: row.lat,
+    lng: row.lng
   }));
 }
 
@@ -1392,13 +1399,72 @@ function render(){
     : state.view==="wall" ? renderWall()
     : state.view==="profile" ? renderProfile()
     : state.view==="reports" ? renderReportsPanel()
+    : state.view==="map" ? renderMapView()
     : renderRankings();
   app.innerHTML = renderHeader() + body
     + (state.toast ? `<div class="toast">${esc(state.toast)}</div>` : ``)
     + renderModal()
     + renderCelebration()
     + (state.lightboxUrl ? `<div class="photo-lightbox"><img src="${esc(state.lightboxUrl)}"></div>` : ``);
+  if(state.view === "map"){
+    initMountainMap();
+  } else {
+    destroyMountainMap();
+  }
 }
+
+function renderMapView(){
+  const withCoords = MOUNTAINS.filter(m => m.lat != null && m.lng != null);
+  const missing = MOUNTAINS.length - withCoords.length;
+  return `
+  <h3 style="margin-bottom:4px;">Mountain map</h3>
+  <p style="font-size:13px; color:var(--canvas-dim); margin:0 0 4px;">Solid pins are mountains you've badged. Some locations are approximate — edit a mountain to correct its pin.</p>
+  ${missing > 0 ? `<p style="font-size:12px; color:var(--canvas-dim); margin:0 0 12px;">${missing} mountain${missing!==1?'s':''} without a saved location aren't shown yet.</p>` : `<div style="margin-bottom:12px;"></div>`}
+  <div id="mountain-map" style="height:520px; border-radius:6px; overflow:hidden; border:1px solid rgba(242,233,208,0.15);"></div>
+  `;
+}
+
+function destroyMountainMap(){
+  if(mountainMapInstance){
+    try{ mountainMapInstance.remove(); }catch(e){}
+    mountainMapInstance = null;
+  }
+}
+
+function initMountainMap(){
+  if(typeof L === "undefined") return;
+  const container = document.getElementById("mountain-map");
+  if(!container) return;
+  destroyMountainMap();
+
+  mountainMapInstance = L.map("mountain-map", { scrollWheelZoom: true }).setView([12.4, 122.0], 6);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: "&copy; OpenStreetMap contributors",
+    maxZoom: 18
+  }).addTo(mountainMapInstance);
+
+  const withCoords = MOUNTAINS.filter(m => m.lat != null && m.lng != null);
+  withCoords.forEach(m=>{
+    const c = CAT(m.difficulty);
+    const done = state.hiked.has(m.id);
+    const marker = L.circleMarker([m.lat, m.lng], {
+      radius: done ? 7 : 6,
+      color: c.dk,
+      weight: done ? 2 : 1,
+      fillColor: c.fill,
+      fillOpacity: done ? 0.9 : 0.25
+    }).addTo(mountainMapInstance);
+    marker.bindPopup(`
+      <div style="font-family:'Oswald',sans-serif; min-width:150px;">
+        <b>${esc(m.name)}</b>${done ? ' <span style="color:#4a7a3a;">✓</span>' : ''}<br>
+        <span style="font-size:12px; color:#555;">${esc(m.place)}</span><br>
+        <span style="font-family:'JetBrains Mono',monospace; font-size:12px;">${esc(m.maslRaw)} masl</span> ·
+        <span style="font-size:11px;">${esc(m.difficulty)}</span>
+      </div>
+    `);
+  });
+}
+
 
 function renderReportsPanel(){
   if(!isAdmin()) return `<div class="empty">Admins only.</div>`;
@@ -1485,6 +1551,7 @@ function renderHeader(){
       <button class="tab-btn ${state.view==='log'?'active':''}" data-tab="log">Trail log</button>
       <button class="tab-btn ${state.view==='feed'?'active':''}" data-tab="feed">Feed${state.notificationCount > 0 ? `<span class="notif-badge">${state.notificationCount > 9 ? "9+" : state.notificationCount}</span>` : ``}</button>
       <button class="tab-btn ${state.view==='wall'?'active':''}" data-tab="wall">Badge wall</button>
+      <button class="tab-btn ${state.view==='map'?'active':''}" data-tab="map">Map</button>
       <button class="tab-btn ${state.view==='rankings'?'active':''}" data-tab="rankings">Rankings</button>
       ${isAdmin() ? `<button class="tab-btn ${state.view==='reports'?'active':''}" data-tab="reports">Reports${state.reports && state.reports.length ? `<span class="notif-badge">${state.reports.length>9?'9+':state.reports.length}</span>` : ``}</button>` : ``}
     </div>
@@ -1553,7 +1620,7 @@ function renderAddMountainSection(){
   if(!state.addingMountain){
     return `<button class="btn" data-action="show-add-mountain" style="margin:2px 0 24px;">+ Add a mountain not listed</button>`;
   }
-  return `<div class="card editing" style="max-width:320px; margin:2px 0 24px;">
+  return `<div class="card editing" style="max-width:340px; margin:2px 0 24px;">
     <div class="edit-field"><label>Name</label><input type="text" id="add-name" placeholder="Mt. Example"></div>
     <div class="edit-field"><label>Place</label><input type="text" id="add-place" placeholder="Province"></div>
     <div class="edit-field"><label>Difficulty</label>
@@ -1562,6 +1629,10 @@ function renderAddMountainSection(){
       </select>
     </div>
     <div class="edit-field"><label>Elevation (masl)</label><input type="text" id="add-masl" placeholder="e.g. 1200 or 1200+"></div>
+    <div class="edit-field-row">
+      <div class="edit-field"><label>Latitude (optional)</label><input type="text" id="add-lat" placeholder="e.g. 14.0660"></div>
+      <div class="edit-field"><label>Longitude (optional)</label><input type="text" id="add-lng" placeholder="e.g. 121.4840"></div>
+    </div>
     <div class="edit-actions">
       <button class="btn" data-action="save-add-mountain">Add to list</button>
       <button class="toggle-btn" data-action="cancel-add-mountain">Cancel</button>
@@ -1667,6 +1738,10 @@ function editCardHTML(m){
       </select>
     </div>
     <div class="edit-field"><label>Elevation (masl)</label><input type="text" data-f="maslRaw" value="${esc(m.maslRaw)}"></div>
+    <div class="edit-field-row">
+      <div class="edit-field"><label>Latitude</label><input type="text" data-f="lat" value="${m.lat!=null?esc(m.lat):''}" placeholder="e.g. 14.0660"></div>
+      <div class="edit-field"><label>Longitude</label><input type="text" data-f="lng" value="${m.lng!=null?esc(m.lng):''}" placeholder="e.g. 121.4840"></div>
+    </div>
     <div class="edit-actions">
       <button class="btn" data-save-edit="${m.id}">Save</button>
       <button class="toggle-btn" data-cancel-edit="${m.id}">Cancel</button>
@@ -2264,13 +2339,18 @@ app.addEventListener("click", async (e)=>{
     const place = document.getElementById("add-place").value.trim();
     const difficulty = document.getElementById("add-difficulty").value;
     const maslRaw = document.getElementById("add-masl").value.trim();
+    const latRaw = document.getElementById("add-lat").value.trim();
+    const lngRaw = document.getElementById("add-lng").value.trim();
+    const lat = latRaw ? parseFloat(latRaw) : null;
+    const lng = lngRaw ? parseFloat(lngRaw) : null;
     if(!name || !maslRaw){ showToast("Please enter at least a name and elevation."); return; }
     const maslNum = parseMaslNum(maslRaw);
     const { data, error } = await sb.from("mountains").insert({
-      name, place: place || "Philippines", difficulty, masl_num: maslNum, masl_raw: maslRaw, created_by: state.user.id
+      name, place: place || "Philippines", difficulty, masl_num: maslNum, masl_raw: maslRaw, created_by: state.user.id,
+      lat: (lat!=null && !isNaN(lat)) ? lat : null, lng: (lng!=null && !isNaN(lng)) ? lng : null
     }).select().single();
     if(error){ showToast("Could not add mountain: "+error.message); return; }
-    MOUNTAINS.push({ id:data.id, legacyId:data.legacy_id, name:data.name, place:data.place, difficulty:data.difficulty, maslNum:data.masl_num, maslRaw:data.masl_raw, createdBy:data.created_by });
+    MOUNTAINS.push({ id:data.id, legacyId:data.legacy_id, name:data.name, place:data.place, difficulty:data.difficulty, maslNum:data.masl_num, maslRaw:data.masl_raw, createdBy:data.created_by, lat:data.lat, lng:data.lng });
     state.addingMountain = false;
     render();
     return;
@@ -2288,14 +2368,18 @@ app.addEventListener("click", async (e)=>{
     const card = saveEdit.closest(".card");
     const val = (f)=> card.querySelector(`[data-f="${f}"]`).value.trim();
     const name = val("name"), place = val("place"), difficulty = val("difficulty"), maslRaw = val("maslRaw");
+    const latRaw = val("lat"), lngRaw = val("lng");
+    const lat = latRaw ? parseFloat(latRaw) : null;
+    const lng = lngRaw ? parseFloat(lngRaw) : null;
     const m = MOUNTAINS.find(x=>x.id===id);
     if(m && name && place && maslRaw){
       const maslNum = parseMaslNum(maslRaw);
       const { error } = await sb.from("mountains")
-        .update({ name, place, difficulty, masl_num: maslNum, masl_raw: maslRaw }).eq("id", id);
+        .update({ name, place, difficulty, masl_num: maslNum, masl_raw: maslRaw, lat: isNaN(lat)?null:lat, lng: isNaN(lng)?null:lng }).eq("id", id);
       if(error){ showToast("Could not save changes: "+error.message); }
       else{
         m.name = name; m.place = place; m.difficulty = difficulty; m.maslRaw = maslRaw; m.maslNum = maslNum;
+        m.lat = isNaN(lat)?null:lat; m.lng = isNaN(lng)?null:lng;
       }
     }
     state.editingId = null;
