@@ -239,6 +239,23 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .follow-btn{margin-top:10px;}
 .streak-line{font-size:13px; color:var(--gold); margin:4px 0 0;}
 
+.conv-list{display:flex; flex-direction:column; gap:2px;}
+.conv-row{background:var(--canvas); color:var(--ink); border-radius:6px; padding:12px 16px; cursor:pointer; margin-bottom:8px; border:1px solid rgba(0,0,0,0.06);}
+.conv-row:hover{border-color:var(--rust);}
+.conv-row.unread{border-left:3px solid var(--rust);}
+.conv-top{display:flex; align-items:center; gap:8px;}
+.conv-name{font-family:'Oswald',sans-serif; font-weight:600; font-size:14px;}
+.conv-time{margin-left:auto; font-size:11px; color:var(--ink-soft);}
+.conv-preview{font-size:12.5px; color:var(--ink-soft); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.dm-thread{display:flex; flex-direction:column; gap:8px; max-height:56vh; overflow-y:auto; padding:6px 2px 14px;}
+.dm-bubble{max-width:70%; padding:9px 13px; border-radius:14px; font-size:13.5px; line-height:1.4;}
+.dm-bubble.theirs{align-self:flex-start; background:var(--canvas); color:var(--ink); border-bottom-left-radius:3px;}
+.dm-bubble.mine{align-self:flex-end; background:var(--rust); color:#fff3e9; border-bottom-right-radius:3px;}
+.dm-bubble .dm-time{font-size:10px; opacity:0.65; margin-top:3px;}
+.dm-input-row{display:flex; gap:8px; margin-top:10px;}
+.dm-input-row input{flex:1; padding:10px 14px; font-size:13.5px; border:1px solid rgba(242,233,208,0.25); border-radius:20px; background:var(--bg-raised); color:var(--canvas); font-family:'Inter',sans-serif;}
+.dm-input-row .btn{border-radius:20px; padding:10px 20px;}
+
 @media (max-width: 640px){
   .wrap{padding:18px 14px 60px;}
   .topbar{flex-direction:column; align-items:flex-start; gap:12px; margin-bottom:16px;}
@@ -680,7 +697,7 @@ function badgeSVG(m, size){
   </svg>`;
 }
 
-let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null, reports:[], following:new Set(), feedFilter:"all", replyingTo:null };
+let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null, reports:[], following:new Set(), feedFilter:"all", replyingTo:null, conversations:[], activeConversation:null, unreadMessageCount:0 };
 const app = document.getElementById("app");
 
 const HEX = {
@@ -1190,6 +1207,71 @@ function computeStreakWeeks(hikedDatesMap){
   return streak;
 }
 
+// ---- Direct messages ----
+async function loadConversations(){
+  const { data, error } = await sb.from("direct_messages")
+    .select("id, sender_id, recipient_id, content, created_at, read_at")
+    .or(`sender_id.eq.${state.user.id},recipient_id.eq.${state.user.id}`)
+    .order("created_at", { ascending:false });
+  if(error){ state.conversations = []; state.unreadMessageCount = 0; return; }
+  const byPartner = {};
+  (data||[]).forEach(m=>{
+    const partnerId = m.sender_id === state.user.id ? m.recipient_id : m.sender_id;
+    if(!byPartner[partnerId]) byPartner[partnerId] = { partnerId, messages:[], unread:0 };
+    byPartner[partnerId].messages.push(m);
+    if(m.recipient_id === state.user.id && !m.read_at) byPartner[partnerId].unread++;
+  });
+  const partnerIds = Object.keys(byPartner);
+  let names = {};
+  if(partnerIds.length){
+    const { data: profs } = await sb.from("profiles").select("id, display_name").in("id", partnerIds);
+    (profs||[]).forEach(p=>{ names[p.id] = p.display_name; });
+  }
+  const list = Object.values(byPartner).map(c=>({
+    partnerId: c.partnerId,
+    partnerName: names[c.partnerId] || "Hiker",
+    lastMessage: c.messages[0],
+    unread: c.unread
+  }));
+  list.sort((a,b)=> new Date(b.lastMessage.created_at) - new Date(a.lastMessage.created_at));
+  state.conversations = list;
+  state.unreadMessageCount = list.reduce((s,c)=>s+c.unread,0);
+}
+
+async function openConversation(partnerId, partnerName){
+  state.activeConversation = { partnerId, partnerName, messages: [] };
+  render();
+  const { data, error } = await sb.from("direct_messages")
+    .select("id, sender_id, recipient_id, content, created_at, read_at")
+    .or(`sender_id.eq.${state.user.id},recipient_id.eq.${state.user.id}`)
+    .order("created_at", { ascending:true });
+  const thread = (data||[]).filter(m =>
+    (m.sender_id===state.user.id && m.recipient_id===partnerId) ||
+    (m.sender_id===partnerId && m.recipient_id===state.user.id)
+  );
+  state.activeConversation.messages = thread;
+  render();
+  const unread = thread.filter(m=>m.recipient_id===state.user.id && !m.read_at);
+  for(const m of unread){
+    await sb.from("direct_messages").update({ read_at: new Date().toISOString() }).eq("id", m.id);
+  }
+  if(unread.length){ await loadConversations(); render(); }
+}
+
+async function sendMessage(){
+  const input = document.getElementById("dm-input");
+  const content = input ? input.value.trim() : "";
+  if(!content || !state.activeConversation) return;
+  const partnerId = state.activeConversation.partnerId;
+  const { data, error } = await sb.from("direct_messages").insert({
+    sender_id: state.user.id, recipient_id: partnerId, content
+  }).select().single();
+  if(error){ showToast("Could not send message: "+error.message); return; }
+  state.activeConversation.messages.push(data);
+  render();
+  await loadConversations();
+}
+
 async function deletePostById(postId){
   const { error } = await sb.from("posts").delete().eq("id", postId);
   if(error){ showToast("Could not delete post: "+error.message); return; }
@@ -1280,7 +1362,8 @@ function renderProfile(){
     <p>${done.length} peak${done.length!==1?'s':''} badged · ${totalElev.toLocaleString()} masl climbed total</p>
     <p style="font-size:12.5px; color:var(--canvas-dim); margin:2px 0 0;">${vp.followerCount} follower${vp.followerCount!==1?'s':''} · ${vp.followingCount} following</p>
     ${streak > 0 ? `<p class="streak-line">🔥 ${streak}-week climbing streak</p>` : ``}
-    ${!isMe ? `<button class="btn follow-btn" data-action="toggle-follow" data-user="${vp.userId}">${state.following.has(vp.userId) ? "Following ✓" : "Follow"}</button>` : ``}
+    ${!isMe ? `<button class="btn follow-btn" data-action="toggle-follow" data-user="${vp.userId}">${state.following.has(vp.userId) ? "Following ✓" : "Follow"}</button>
+    <button class="toggle-btn follow-btn" data-action="message-user" data-user="${vp.userId}" data-name="${esc(vp.displayName)}" style="width:auto; margin-left:8px;">Message</button>` : ``}
   </div>
   ${done.length === 0 ? `<div class="empty">No badges yet.</div>` : `
   <div class="wall-grid">
@@ -1400,6 +1483,7 @@ function render(){
     : state.view==="profile" ? renderProfile()
     : state.view==="reports" ? renderReportsPanel()
     : state.view==="map" ? renderMapView()
+    : state.view==="messages" ? renderMessages()
     : renderRankings();
   app.innerHTML = renderHeader() + body
     + (state.toast ? `<div class="toast">${esc(state.toast)}</div>` : ``)
@@ -1411,6 +1495,44 @@ function render(){
   } else {
     destroyMountainMap();
   }
+}
+
+function renderMessages(){
+  if(state.activeConversation) return renderConversationThread();
+  if(!state.conversations || state.conversations.length === 0){
+    return `<div class="empty">No conversations yet. Visit a hiker's profile and click "Message" to start one.</div>`;
+  }
+  return `<div class="conv-list">
+    ${state.conversations.map(c=>`
+      <div class="conv-row ${c.unread>0?'unread':''}" data-action="open-conversation" data-user="${c.partnerId}" data-name="${esc(c.partnerName)}">
+        <div class="conv-top">
+          <div class="conv-name">${esc(c.partnerName)}</div>
+          ${c.unread>0 ? `<span class="notif-badge" style="position:static;">${c.unread>9?'9+':c.unread}</span>` : ``}
+          <div class="conv-time">${timeAgo(c.lastMessage.created_at)}</div>
+        </div>
+        <div class="conv-preview">${c.lastMessage.sender_id===state.user.id ? "You: " : ""}${esc((c.lastMessage.content||"").slice(0,70))}</div>
+      </div>
+    `).join("")}
+  </div>`;
+}
+
+function renderConversationThread(){
+  const conv = state.activeConversation;
+  return `
+  <a data-action="back-to-conversations" style="font-size:12px; color:var(--gold); cursor:pointer; text-decoration:underline; display:inline-block; margin-bottom:12px;">← Back to messages</a>
+  <h3 style="margin-bottom:14px; cursor:pointer; display:inline-block;" data-view-profile="${conv.partnerId}" data-profile-name="${esc(conv.partnerName)}">${esc(conv.partnerName)}</h3>
+  <div class="dm-thread">
+    ${conv.messages.map(m=>`
+      <div class="dm-bubble ${m.sender_id===state.user.id?'mine':'theirs'}">
+        <div class="dm-text">${esc(m.content)}</div>
+        <div class="dm-time">${timeAgo(m.created_at)}</div>
+      </div>
+    `).join("") || `<div class="empty">Say hello!</div>`}
+  </div>
+  <div class="dm-input-row">
+    <input type="text" id="dm-input" placeholder="Write a message...">
+    <button class="btn" data-action="send-message">Send</button>
+  </div>`;
 }
 
 function renderMapView(){
@@ -1552,6 +1674,7 @@ function renderHeader(){
       <button class="tab-btn ${state.view==='feed'?'active':''}" data-tab="feed">Feed${state.notificationCount > 0 ? `<span class="notif-badge">${state.notificationCount > 9 ? "9+" : state.notificationCount}</span>` : ``}</button>
       <button class="tab-btn ${state.view==='wall'?'active':''}" data-tab="wall">Badge wall</button>
       <button class="tab-btn ${state.view==='map'?'active':''}" data-tab="map">Map</button>
+      <button class="tab-btn ${state.view==='messages'?'active':''}" data-tab="messages">Messages${state.unreadMessageCount>0?`<span class="notif-badge">${state.unreadMessageCount>9?'9+':state.unreadMessageCount}</span>`:``}</button>
       <button class="tab-btn ${state.view==='rankings'?'active':''}" data-tab="rankings">Rankings</button>
       ${isAdmin() ? `<button class="tab-btn ${state.view==='reports'?'active':''}" data-tab="reports">Reports${state.reports && state.reports.length ? `<span class="notif-badge">${state.reports.length>9?'9+':state.reports.length}</span>` : ``}</button>` : ``}
     </div>
@@ -2081,6 +2204,7 @@ async function handleSignedIn(user){
   await loadMyClimbs();
   await loadLeaderboard();
   await loadFollowing();
+  await loadConversations();
   await refreshNotificationCount();
   state.authLoading = false;
   state.loading = false;
@@ -2147,6 +2271,10 @@ app.addEventListener("keydown", (e)=>{
       addComment(state.replyingTo.postId, state.replyingTo.commentId);
     }
   }
+  if(e.key === "Enter" && e.target.id === "dm-input"){
+    e.preventDefault();
+    sendMessage();
+  }
 });
 
 app.addEventListener("click", async (e)=>{
@@ -2204,6 +2332,7 @@ app.addEventListener("click", async (e)=>{
   if(tabBtn){
     state.view = tabBtn.dataset.tab;
     state.viewingProfile = null;
+    if(state.view !== "messages") state.activeConversation = null;
     render();
     if(state.view === "feed"){
       await loadFeed();
@@ -2212,10 +2341,29 @@ app.addEventListener("click", async (e)=>{
     } else if(state.view === "reports" && isAdmin()){
       await loadReports();
       render();
+    } else if(state.view === "messages"){
+      await loadConversations();
+      render();
     } else {
       await refreshNotificationCount();
       render();
     }
+    return;
+  }
+
+  const openConvRow = e.target.closest('[data-action="open-conversation"]');
+  if(openConvRow){ await openConversation(openConvRow.dataset.user, openConvRow.dataset.name); return; }
+
+  const backToConvBtn = e.target.closest('[data-action="back-to-conversations"]');
+  if(backToConvBtn){ state.activeConversation = null; await loadConversations(); render(); return; }
+
+  const sendMsgBtn = e.target.closest('[data-action="send-message"]');
+  if(sendMsgBtn){ await sendMessage(); return; }
+
+  const messageUserBtn = e.target.closest('[data-action="message-user"]');
+  if(messageUserBtn){
+    state.view = "messages";
+    await openConversation(messageUserBtn.dataset.user, messageUserBtn.dataset.name);
     return;
   }
 
