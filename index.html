@@ -334,6 +334,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let MOUNTAINS = []; // loaded from Supabase at runtime
 let mountainMapInstance = null;
+let messagesChannel = null;
 
 function parseMaslNum(raw){
   const cleaned = String(raw).replace(/[~\s]/g,"").replace(/(\d),(\d)/g,"$1$2");
@@ -1278,6 +1279,39 @@ async function sendMessage(){
   await loadConversations();
 }
 
+// ---- Realtime: push new messages in instantly, no polling ----
+function subscribeToMessages(){
+  if(!state.user || typeof sb.channel !== "function") return;
+  unsubscribeFromMessages();
+  messagesChannel = sb
+    .channel("direct-messages-"+state.user.id)
+    .on("postgres_changes", {
+      event: "INSERT",
+      schema: "public",
+      table: "direct_messages",
+      filter: `recipient_id=eq.${state.user.id}`
+    }, (payload) => { handleIncomingMessage(payload.new); })
+    .subscribe();
+}
+
+function unsubscribeFromMessages(){
+  if(messagesChannel){
+    try{ sb.removeChannel(messagesChannel); }catch(e){}
+    messagesChannel = null;
+  }
+}
+
+async function handleIncomingMessage(msg){
+  const viewingThisThread = state.view === "messages" && state.activeConversation && state.activeConversation.partnerId === msg.sender_id;
+  if(viewingThisThread){
+    state.activeConversation.messages.push(msg);
+    render();
+    try{ await sb.from("direct_messages").update({ read_at: new Date().toISOString() }).eq("id", msg.id); }catch(e){}
+  }
+  await loadConversations();
+  render();
+}
+
 async function deletePostById(postId){
   const { error } = await sb.from("posts").delete().eq("id", postId);
   if(error){ showToast("Could not delete post: "+error.message); return; }
@@ -2181,6 +2215,7 @@ async function submitNewPassword(){
 
 async function signOutUser(){
   await sb.auth.signOut();
+  unsubscribeFromMessages();
   state.user = null;
   state.profile = null;
   state.hiked = new Set();
@@ -2213,6 +2248,7 @@ async function handleSignedIn(user){
   await loadFollowing();
   await loadConversations();
   await refreshNotificationCount();
+  subscribeToMessages();
   state.authLoading = false;
   state.loading = false;
   render();
@@ -2648,6 +2684,7 @@ app.addEventListener("click", async (e)=>{
       await handleSignedIn(session.user);
     }
     if(event === "SIGNED_OUT"){
+      unsubscribeFromMessages();
       state.user = null;
       state.profile = null;
       state.hiked = new Set();
