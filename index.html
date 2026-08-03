@@ -257,7 +257,7 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .dm-input-row .btn{border-radius:20px; padding:10px 20px;}
 
 #mountain-map{background:var(--bg);}
-#mountain-map .map-tiles-green{filter:hue-rotate(100deg) saturate(1.5) brightness(0.85) contrast(1.05);}
+#mountain-map .map-tiles-green{filter:hue-rotate(100deg) saturate(1.3) brightness(1) contrast(1.05);}
 #mountain-map .leaflet-control-zoom a{background:var(--canvas); color:var(--ink); border-color:rgba(0,0,0,0.15);}
 #mountain-map .leaflet-control-attribution{background:rgba(32,43,33,0.75); color:var(--canvas-dim);}
 #mountain-map .leaflet-control-attribution a{color:var(--gold);}
@@ -1600,7 +1600,7 @@ function initMountainMap(){
   destroyMountainMap();
 
   mountainMapInstance = L.map("mountain-map", { scrollWheelZoom: true }).setView([12.4, 122.0], 6);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png", {
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
     attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
     maxZoom: 18,
     className: "map-tiles-green"
