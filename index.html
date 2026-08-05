@@ -346,6 +346,89 @@ function parseMaslNum(raw){
 
 const DIFFICULTY_OPTIONS = ["Beginner","Beginner to moderate","Moderate","Moderate to difficult","Difficult","Very difficult"];
 
+function parseCSVLine(line){
+  const result = [];
+  let cur = "", inQuotes = false;
+  for(let i=0;i<line.length;i++){
+    const ch = line[i];
+    if(inQuotes){
+      if(ch === '"'){
+        if(line[i+1] === '"'){ cur += '"'; i++; }
+        else inQuotes = false;
+      } else cur += ch;
+    } else {
+      if(ch === '"') inQuotes = true;
+      else if(ch === ','){ result.push(cur.trim()); cur = ""; }
+      else cur += ch;
+    }
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+function normalizeDifficulty(d){
+  const found = DIFFICULTY_OPTIONS.find(opt => opt.toLowerCase() === String(d).toLowerCase().trim());
+  return found || "Moderate";
+}
+
+function parseBulkImportText(text){
+  const lines = String(text).split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+  const rows = [];
+  for(const line of lines){
+    const fields = parseCSVLine(line);
+    if(fields.length < 4) continue;
+    if(fields[0].toLowerCase() === "mountain") continue; // skip header row
+    let name, place, difficulty, maslRaw;
+    if(fields.length === 4){
+      [name, place, difficulty, maslRaw] = fields;
+    } else {
+      name = fields[0];
+      difficulty = fields[fields.length-2];
+      maslRaw = fields[fields.length-1];
+      place = fields.slice(1, fields.length-2).join(", ");
+    }
+    name = (name||"").trim();
+    maslRaw = (maslRaw||"").replace(/^~/,"").trim();
+    if(!name || !maslRaw) continue;
+    rows.push({ name, place: (place||"").trim() || "Philippines", difficulty: normalizeDifficulty(difficulty), maslRaw });
+  }
+  return rows;
+}
+
+async function runBulkImport(){
+  const textEl = document.getElementById("bulk-import-text");
+  const rows = parseBulkImportText(textEl ? textEl.value : "");
+  if(rows.length === 0){ showToast("Couldn't find any valid rows to import."); return; }
+
+  const existingNames = new Set(MOUNTAINS.map(m=>m.name.trim().toLowerCase()));
+  const seenInBatch = new Set();
+  const toInsert = [];
+  let skipped = 0;
+  rows.forEach(r=>{
+    const key = r.name.toLowerCase();
+    if(existingNames.has(key) || seenInBatch.has(key)){ skipped++; return; }
+    seenInBatch.add(key);
+    toInsert.push({
+      name: r.name, place: r.place, difficulty: r.difficulty,
+      masl_num: parseMaslNum(r.maslRaw), masl_raw: r.maslRaw, created_by: state.user.id
+    });
+  });
+
+  if(toInsert.length === 0){
+    showToast(`No new mountains to add — all ${skipped} matched existing ones.`);
+    return;
+  }
+
+  const { data, error } = await sb.from("mountains").insert(toInsert).select();
+  if(error){ showToast("Import failed: "+error.message); return; }
+  (data||[]).forEach(row=>{
+    MOUNTAINS.push({ id:row.id, legacyId:row.legacy_id, name:row.name, place:row.place, difficulty:row.difficulty, maslNum:row.masl_num, maslRaw:row.masl_raw, createdBy:row.created_by, lat:row.lat, lng:row.lng });
+  });
+  state.showBulkImport = false;
+  render();
+  showToast(`Added ${data.length} mountain${data.length!==1?'s':''}.${skipped>0 ? ` Skipped ${skipped} duplicate${skipped!==1?'s':''}.` : ''}`);
+}
+
 const CAT = (diff)=>{
   const d = diff.toLowerCase();
   if(d.includes("very difficult")) return {label:"Very difficult", fill:"var(--brick)", dk:"var(--brick-d)"};
@@ -704,7 +787,7 @@ function badgeSVG(m, size){
   </svg>`;
 }
 
-let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null, reports:[], following:new Set(), feedFilter:"all", replyingTo:null, conversations:[], activeConversation:null, unreadMessageCount:0 };
+let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null, reports:[], following:new Set(), feedFilter:"all", replyingTo:null, conversations:[], activeConversation:null, unreadMessageCount:0, showBulkImport:false };
 const app = document.getElementById("app");
 
 const HEX = {
@@ -1781,8 +1864,23 @@ function renderControls(){
 }
 
 function renderAddMountainSection(){
+  if(state.showBulkImport){
+    return `<div class="card editing" style="max-width:480px; margin:2px 0 24px;">
+      <label class="modal-field-label">Paste rows: Mountain, Place, Difficulty, MASL</label>
+      <textarea id="bulk-import-text" rows="8" placeholder="Mt. Example,Province,Moderate,1234
+Mt. Another,Province,Difficult,987+"></textarea>
+      <p class="fine" style="margin:2px 0 12px;">One mountain per line. Difficulty should match: ${DIFFICULTY_OPTIONS.join(", ")}. Mountains that already exist (matched by name) are skipped automatically.</p>
+      <div class="edit-actions">
+        <button class="btn" data-action="run-bulk-import">Import</button>
+        <button class="toggle-btn" data-action="cancel-bulk-import">Cancel</button>
+      </div>
+    </div>`;
+  }
   if(!state.addingMountain){
-    return `<button class="btn" data-action="show-add-mountain" style="margin:2px 0 24px;">+ Add a mountain not listed</button>`;
+    return `<div style="margin:2px 0 24px; display:flex; gap:10px; flex-wrap:wrap;">
+      <button class="btn" data-action="show-add-mountain">+ Add a mountain not listed</button>
+      <button class="toggle-btn" data-action="show-bulk-import" style="width:auto; margin-top:0;">📋 Paste a list instead</button>
+    </div>`;
   }
   return `<div class="card editing" style="max-width:340px; margin:2px 0 24px;">
     <div class="edit-field"><label>Name</label><input type="text" id="add-name" placeholder="Mt. Example"></div>
@@ -2523,6 +2621,15 @@ app.addEventListener("click", async (e)=>{
 
   const cancelAdd = e.target.closest('[data-action="cancel-add-mountain"]');
   if(cancelAdd){ state.addingMountain = false; render(); return; }
+
+  const showBulk = e.target.closest('[data-action="show-bulk-import"]');
+  if(showBulk){ state.showBulkImport = true; render(); return; }
+
+  const cancelBulk = e.target.closest('[data-action="cancel-bulk-import"]');
+  if(cancelBulk){ state.showBulkImport = false; render(); return; }
+
+  const runBulk = e.target.closest('[data-action="run-bulk-import"]');
+  if(runBulk){ await runBulkImport(); return; }
 
   const saveAdd = e.target.closest('[data-action="save-add-mountain"]');
   if(saveAdd){
