@@ -837,7 +837,7 @@ function badgeSVG(m, size){
   </svg>`;
 }
 
-let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null, reports:[], following:new Set(), feedFilter:"all", replyingTo:null, conversations:[], activeConversation:null, unreadMessageCount:0, showBulkImport:false };
+let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null, reports:[], following:new Set(), feedFilter:"all", replyingTo:null, conversations:[], activeConversation:null, unreadMessageCount:0, showBulkImport:false, people:[], peopleSearch:"", peopleLoaded:false };
 const app = document.getElementById("app");
 
 const HEX = {
@@ -1328,6 +1328,27 @@ async function loadFollowCounts(userId){
   return { followers: (followers||[]).length, following: (followingList||[]).length };
 }
 
+// ---- People directory: every hiker on the site, with a follow button ----
+async function loadPeople(){
+  const { data, error } = await sb.from("profiles").select("id, display_name, created_at, is_admin");
+  if(error){ state.people = []; return; }
+  await loadLeaderboard();
+  const lbByUser = {};
+  state.leaderboard.forEach(e=>{ lbByUser[e.userId] = e; });
+  state.people = (data||[])
+    .filter(p=>p.id !== state.user.id)
+    .map(p=>({
+      id: p.id,
+      name: p.display_name,
+      isAdmin: !!p.is_admin,
+      joinedAt: p.created_at,
+      peakCount: lbByUser[p.id] ? lbByUser[p.id].count : 0,
+      elev: lbByUser[p.id] ? lbByUser[p.id].elev : 0
+    }))
+    .sort((a,b)=> b.peakCount - a.peakCount || a.name.localeCompare(b.name));
+  state.peopleLoaded = true;
+}
+
 // ---- Streaks: consecutive weeks with at least one dated climb ----
 function computeStreakWeeks(hikedDatesMap){
   const dates = Object.values(hikedDatesMap||{}).filter(Boolean).map(d=>new Date(d+"T00:00:00"));
@@ -1663,6 +1684,7 @@ function render(){
     : state.view==="reports" ? renderReportsPanel()
     : state.view==="map" ? renderMapView()
     : state.view==="messages" ? renderMessages()
+    : state.view==="people" ? renderPeople()
     : renderRankings();
   app.innerHTML = renderHeader() + body
     + (state.toast ? `<div class="toast">${esc(state.toast)}</div>` : ``)
@@ -1674,6 +1696,33 @@ function render(){
   } else {
     destroyMountainMap();
   }
+}
+
+function renderPeople(){
+  const q = (state.peopleSearch||"").trim().toLowerCase();
+  const list = q ? state.people.filter(p=>p.name.toLowerCase().includes(q)) : state.people;
+  const inactiveNote = (p) => (isAdmin() && p.peakCount === 0)
+    ? ` <span style="font-size:10.5px; color:var(--canvas-dim); text-transform:none; font-weight:400;">— joined ${esc(formatDate((p.joinedAt||"").slice(0,10)))}, no climbs yet</span>`
+    : "";
+  return `
+  <h3 style="margin-bottom:4px;">People</h3>
+  <p style="font-size:13px; color:var(--canvas-dim); margin:0 0 14px;">Every hiker on Summit Log. Follow someone to see their climbs in your feed.</p>
+  <div class="controls-row">
+    <input type="text" id="people-search" placeholder="Search by name" value="${esc(state.peopleSearch||"")}">
+  </div>
+  ${list.length===0 ? `<div class="empty">${q ? `No one matches "${esc(state.peopleSearch)}".` : "No other hikers here yet — invite some friends!"}</div>` : `
+  <div class="conv-list">
+    ${list.map(p=>`
+      <div class="conv-row" style="cursor:default; display:flex; align-items:center; gap:12px;">
+        <div style="flex:1; cursor:pointer; min-width:0;" data-view-profile="${p.id}" data-profile-name="${esc(p.name)}">
+          <div class="conv-name">${esc(p.name)}${p.isAdmin ? ` <span class="admin-tag">admin</span>` : ``}${inactiveNote(p)}</div>
+          <div class="conv-preview" style="white-space:normal;">${p.peakCount} peak${p.peakCount!==1?'s':''} badged${p.elev>0 ? ` · ${p.elev.toLocaleString()} masl` : ``}</div>
+        </div>
+        <button class="toggle-btn" style="width:auto; margin-top:0; padding:7px 14px; font-size:11px; flex-shrink:0;" data-action="toggle-follow" data-user="${p.id}">${state.following.has(p.id) ? "Following ✓" : "Follow"}</button>
+      </div>
+    `).join("")}
+  </div>`}
+  `;
 }
 
 function renderMessages(){
@@ -1856,6 +1905,7 @@ function renderHeader(){
       <button class="tab-btn ${state.view==='map'?'active':''}" data-tab="map">Map</button>
       <button class="tab-btn ${state.view==='messages'?'active':''}" data-tab="messages">Messages${state.unreadMessageCount>0?`<span class="notif-badge">${state.unreadMessageCount>9?'9+':state.unreadMessageCount}</span>`:``}</button>
       <button class="tab-btn ${state.view==='rankings'?'active':''}" data-tab="rankings">Rankings</button>
+      <button class="tab-btn ${state.view==='people'?'active':''}" data-tab="people">People</button>
       ${isAdmin() ? `<button class="tab-btn ${state.view==='reports'?'active':''}" data-tab="reports">Reports${state.reports && state.reports.length ? `<span class="notif-badge">${state.reports.length>9?'9+':state.reports.length}</span>` : ``}</button>` : ``}
     </div>
   </div>
@@ -2432,6 +2482,12 @@ app.addEventListener("input", (e)=>{
     const el = document.getElementById("search-input");
     if(el){ el.focus(); const len = el.value.length; el.setSelectionRange(len, len); }
   }
+  if(e.target.id === "people-search"){
+    state.peopleSearch = e.target.value;
+    render();
+    const el = document.getElementById("people-search");
+    if(el){ el.focus(); const len = el.value.length; el.setSelectionRange(len, len); }
+  }
 });
 
 app.addEventListener("change", (e)=>{
@@ -2556,6 +2612,9 @@ app.addEventListener("click", async (e)=>{
       render();
     } else if(state.view === "messages"){
       await loadConversations();
+      render();
+    } else if(state.view === "people"){
+      await loadPeople();
       render();
     } else {
       await refreshNotificationCount();
