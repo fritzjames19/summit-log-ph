@@ -108,6 +108,14 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .onboard .fine{font-size:11.5px; color:var(--ink-soft); margin-top:10px; line-height:1.5;}
 
 .namebar{display:flex; align-items:center; gap:10px; font-size:13px; color:var(--canvas-dim); margin-bottom:22px;}
+.avatar-img{border-radius:50%; object-fit:cover; display:block; box-shadow:var(--shadow-sm); flex-shrink:0;}
+.avatar-fallback{border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-family:'Oswald',sans-serif; font-weight:700; box-shadow:var(--shadow-sm); flex-shrink:0;}
+.avatar-upload-wrap{position:relative; width:88px; height:88px; margin:0 0 14px;}
+.avatar-upload-btn{position:absolute; bottom:-2px; right:-2px; width:30px; height:30px; border-radius:50%; background:var(--rust); color:#fff3e9; display:flex; align-items:center; justify-content:center; cursor:pointer; border:3px solid var(--bg); font-size:13px; box-shadow:var(--shadow-sm);}
+.avatar-upload-btn:hover{background:#9c4426;}
+.avatar-upload-btn input{display:none;}
+.namebar-inline{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+.people-row-avatar{margin-right:2px;}
 .namebar a{color:var(--gold); cursor:pointer; text-decoration:underline;}
 
 .group{margin-bottom:26px;}
@@ -1223,7 +1231,7 @@ async function uploadPostPhotos(clientId, files){
 
 async function loadFeed(){
   const { data: postsData, error } = await sb.from("posts")
-    .select("id, user_id, content, photo_url, photo_urls, mountain_id, created_at, profiles(display_name)")
+    .select("id, user_id, content, photo_url, photo_urls, mountain_id, created_at, profiles(display_name, avatar_url)")
     .order("created_at", { ascending:false })
     .limit(50);
   if(error){ state.feedPosts = []; return; }
@@ -1232,7 +1240,7 @@ async function loadFeed(){
   if(postIds.length){
     const likesRes = await sb.from("post_likes").select("post_id, user_id").in("post_id", postIds);
     likesData = likesRes.data || [];
-    const commentsRes = await sb.from("post_comments").select("id, post_id, user_id, content, created_at, parent_comment_id, profiles(display_name)").in("post_id", postIds).order("created_at", {ascending:true});
+    const commentsRes = await sb.from("post_comments").select("id, post_id, user_id, content, created_at, parent_comment_id, profiles(display_name, avatar_url)").in("post_id", postIds).order("created_at", {ascending:true});
     commentsData = commentsRes.data || [];
   }
   state.feedPosts = (postsData||[]).map(p=>{
@@ -1244,13 +1252,14 @@ async function loadFeed(){
       id: p.id,
       userId: p.user_id,
       authorName: p.profiles ? p.profiles.display_name : "Hiker",
+      authorAvatar: p.profiles ? p.profiles.avatar_url : null,
       content: p.content,
       photoUrls: photoUrls,
       mountainName: mountain ? mountain.name : null,
       createdAt: p.created_at,
       likeCount: likes.length,
       likedByMe: likes.some(l=>l.user_id===state.user.id),
-      comments: comments.map(c=>({ id:c.id, userId:c.user_id, authorName: c.profiles?c.profiles.display_name:"Hiker", content:c.content, createdAt:c.created_at, parentId:c.parent_comment_id||null }))
+      comments: comments.map(c=>({ id:c.id, userId:c.user_id, authorName: c.profiles?c.profiles.display_name:"Hiker", authorAvatar: c.profiles?c.profiles.avatar_url:null, content:c.content, createdAt:c.created_at, parentId:c.parent_comment_id||null }))
     };
   });
   state.feedLoaded = true;
@@ -1330,7 +1339,7 @@ async function loadFollowCounts(userId){
 
 // ---- People directory: every hiker on the site, with a follow button ----
 async function loadPeople(){
-  const { data, error } = await sb.from("profiles").select("id, display_name, created_at, is_admin");
+  const { data, error } = await sb.from("profiles").select("id, display_name, created_at, is_admin, avatar_url");
   if(error){ state.people = []; return; }
   await loadLeaderboard();
   const lbByUser = {};
@@ -1342,6 +1351,7 @@ async function loadPeople(){
       name: p.display_name,
       isAdmin: !!p.is_admin,
       joinedAt: p.created_at,
+      avatarUrl: p.avatar_url,
       peakCount: lbByUser[p.id] ? lbByUser[p.id].count : 0,
       elev: lbByUser[p.id] ? lbByUser[p.id].elev : 0
     }))
@@ -1389,14 +1399,15 @@ async function loadConversations(){
     if(m.recipient_id === state.user.id && !m.read_at) byPartner[partnerId].unread++;
   });
   const partnerIds = Object.keys(byPartner);
-  let names = {};
+  let names = {}, avatars = {};
   if(partnerIds.length){
-    const { data: profs } = await sb.from("profiles").select("id, display_name").in("id", partnerIds);
-    (profs||[]).forEach(p=>{ names[p.id] = p.display_name; });
+    const { data: profs } = await sb.from("profiles").select("id, display_name, avatar_url").in("id", partnerIds);
+    (profs||[]).forEach(p=>{ names[p.id] = p.display_name; avatars[p.id] = p.avatar_url; });
   }
   const list = Object.values(byPartner).map(c=>({
     partnerId: c.partnerId,
     partnerName: names[c.partnerId] || "Hiker",
+    partnerAvatar: avatars[c.partnerId] || null,
     lastMessage: c.messages[0],
     unread: c.unread
   }));
@@ -1406,8 +1417,10 @@ async function loadConversations(){
 }
 
 async function openConversation(partnerId, partnerName){
-  state.activeConversation = { partnerId, partnerName, messages: [] };
+  state.activeConversation = { partnerId, partnerName, partnerAvatar: null, messages: [] };
   render();
+  const { data: profRow } = await sb.from("profiles").select("avatar_url").eq("id", partnerId).single();
+  state.activeConversation.partnerAvatar = profRow ? profRow.avatar_url : null;
   const { data, error } = await sb.from("direct_messages")
     .select("id, sender_id, recipient_id, content, created_at, read_at")
     .or(`sender_id.eq.${state.user.id},recipient_id.eq.${state.user.id}`)
@@ -1542,7 +1555,8 @@ async function openUserProfile(userId, displayName){
     (data||[]).forEach(row => { hiked.add(row.mountain_id); dates[row.mountain_id] = row.climbed_on; });
   }
   const counts = await loadFollowCounts(userId);
-  state.viewingProfile = { userId, displayName, hiked, dates, followerCount:counts.followers, followingCount:counts.following };
+  const { data: profRow } = await sb.from("profiles").select("avatar_url").eq("id", userId).single();
+  state.viewingProfile = { userId, displayName, hiked, dates, followerCount:counts.followers, followingCount:counts.following, avatarUrl: profRow ? profRow.avatar_url : null };
   state.view = "profile";
   state.loading = false;
   render();
@@ -1558,6 +1572,7 @@ function renderProfile(){
   return `
   <div class="wall-head">
     <a data-action="back-from-profile" style="font-size:12px; color:var(--gold); cursor:pointer; text-decoration:underline; display:inline-block; margin-bottom:10px;">← Back</a>
+    <div style="margin-bottom:10px;">${renderAvatar(vp.displayName, vp.avatarUrl, 72)}</div>
     <h3>${esc(vp.displayName)}'s badge wall</h3>
     <p>${done.length} peak${done.length!==1?'s':''} badged · ${totalElev.toLocaleString()} masl climbed total</p>
     <p style="font-size:12.5px; color:var(--canvas-dim); margin:2px 0 0;">${vp.followerCount} follower${vp.followerCount!==1?'s':''} · ${vp.followingCount} following</p>
@@ -1714,6 +1729,7 @@ function renderPeople(){
   <div class="conv-list">
     ${list.map(p=>`
       <div class="conv-row" style="cursor:default; display:flex; align-items:center; gap:12px;">
+        <div class="people-row-avatar" data-view-profile="${p.id}" data-profile-name="${esc(p.name)}" style="cursor:pointer;">${renderAvatar(p.name, p.avatarUrl, 40)}</div>
         <div style="flex:1; cursor:pointer; min-width:0;" data-view-profile="${p.id}" data-profile-name="${esc(p.name)}">
           <div class="conv-name">${esc(p.name)}${p.isAdmin ? ` <span class="admin-tag">admin</span>` : ``}${inactiveNote(p)}</div>
           <div class="conv-preview" style="white-space:normal;">${p.peakCount} peak${p.peakCount!==1?'s':''} badged${p.elev>0 ? ` · ${p.elev.toLocaleString()} masl` : ``}</div>
@@ -1732,13 +1748,16 @@ function renderMessages(){
   }
   return `<div class="conv-list">
     ${state.conversations.map(c=>`
-      <div class="conv-row ${c.unread>0?'unread':''}" data-action="open-conversation" data-user="${c.partnerId}" data-name="${esc(c.partnerName)}">
-        <div class="conv-top">
-          <div class="conv-name">${esc(c.partnerName)}</div>
-          ${c.unread>0 ? `<span class="notif-badge" style="position:static;">${c.unread>9?'9+':c.unread}</span>` : ``}
-          <div class="conv-time">${timeAgo(c.lastMessage.created_at)}</div>
+      <div class="conv-row ${c.unread>0?'unread':''}" data-action="open-conversation" data-user="${c.partnerId}" data-name="${esc(c.partnerName)}" style="display:flex; align-items:center; gap:12px;">
+        ${renderAvatar(c.partnerName, c.partnerAvatar, 36)}
+        <div style="flex:1; min-width:0;">
+          <div class="conv-top">
+            <div class="conv-name">${esc(c.partnerName)}</div>
+            ${c.unread>0 ? `<span class="notif-badge" style="position:static;">${c.unread>9?'9+':c.unread}</span>` : ``}
+            <div class="conv-time">${timeAgo(c.lastMessage.created_at)}</div>
+          </div>
+          <div class="conv-preview">${c.lastMessage.sender_id===state.user.id ? "You: " : ""}${esc((c.lastMessage.content||"").slice(0,70))}</div>
         </div>
-        <div class="conv-preview">${c.lastMessage.sender_id===state.user.id ? "You: " : ""}${esc((c.lastMessage.content||"").slice(0,70))}</div>
       </div>
     `).join("")}
   </div>`;
@@ -1748,7 +1767,10 @@ function renderConversationThread(){
   const conv = state.activeConversation;
   return `
   <a data-action="back-to-conversations" style="font-size:12px; color:var(--gold); cursor:pointer; text-decoration:underline; display:inline-block; margin-bottom:12px;">← Back to messages</a>
-  <h3 style="margin-bottom:14px; cursor:pointer; display:inline-block;" data-view-profile="${conv.partnerId}" data-profile-name="${esc(conv.partnerName)}">${esc(conv.partnerName)}</h3>
+  <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; cursor:pointer;" data-view-profile="${conv.partnerId}" data-profile-name="${esc(conv.partnerName)}">
+    ${renderAvatar(conv.partnerName, conv.partnerAvatar, 34)}
+    <h3 style="display:inline-block;">${esc(conv.partnerName)}</h3>
+  </div>
   <div class="dm-thread">
     ${conv.messages.map(m=>`
       <div class="dm-bubble ${m.sender_id===state.user.id?'mine':'theirs'}">
@@ -1909,7 +1931,7 @@ function renderHeader(){
       ${isAdmin() ? `<button class="tab-btn ${state.view==='reports'?'active':''}" data-tab="reports">Reports${state.reports && state.reports.length ? `<span class="notif-badge">${state.reports.length>9?'9+':state.reports.length}</span>` : ``}</button>` : ``}
     </div>
   </div>
-  <div class="namebar">Climbing as <b style="color:var(--canvas)">${esc(state.profile.display_name)}</b>${isAdmin() ? ` <span class="admin-tag">admin</span>` : ``} · <a data-action="rename">change name</a> · <a data-action="change-password">change password</a> · <a data-action="sign-out">sign out</a></div>
+  <div class="namebar">${renderAvatar(state.profile.display_name, state.profile.avatar_url, 26)} Climbing as <b style="color:var(--canvas)">${esc(state.profile.display_name)}</b>${isAdmin() ? ` <span class="admin-tag">admin</span>` : ``} · <a data-action="rename">change name</a> · <a data-action="change-password">change password</a> · <a data-action="sign-out">sign out</a></div>
   ${state.view==='log' ? `<div class="edit-note">See wrong info, or a mountain that's missing? Use "Edit" on a card, or add a new one below — changes are shared and show for everyone.</div>` : ``}
   ${state.view==='log' ? `
   <div class="hero">
@@ -2236,6 +2258,7 @@ function renderFeed(){
     const topLevelComments = p.comments.filter(c=>!c.parentId);
     return `<div class="post-card">
       <div class="post-head">
+        <div data-view-profile="${p.userId}" data-profile-name="${esc(p.authorName)}" style="cursor:pointer;">${renderAvatar(p.authorName, p.authorAvatar, 30)}</div>
         <div class="post-author" data-view-profile="${p.userId}" data-profile-name="${esc(p.authorName)}">${esc(p.authorName)}</div>
         <div class="post-time">${timeAgo(p.createdAt)}</div>
         ${p.userId === state.user.id ? `<a data-action="delete-post" data-post="${p.id}" style="margin-left:auto; font-size:11px; color:var(--rust); text-decoration:underline; cursor:pointer;">delete</a>` : ``}
@@ -2265,8 +2288,12 @@ function renderFeed(){
 
 function renderWall(){
   const done = MOUNTAINS.filter(m=>state.hiked.has(m.id)).sort((a,b)=>b.maslNum-a.maslNum);
+  const avatarWidget = `<div class="avatar-upload-wrap">
+    ${renderAvatar(state.profile.display_name, state.profile.avatar_url, 88)}
+    <label class="avatar-upload-btn" title="Change profile photo">📷<input type="file" id="avatar-input" accept="image/*"></label>
+  </div>`;
   if(done.length === 0){
-    return `<div class="empty">Your board is empty. Mark a mountain as hiked on the Trail log to add your first patch.</div>`;
+    return avatarWidget + `<div class="empty">Your board is empty. Mark a mountain as hiked on the Trail log to add your first patch.</div>`;
   }
   const totalElev = done.reduce((s,m)=>s+m.maslNum,0);
   const streak = computeStreakWeeks(state.hikedDates);
@@ -2279,6 +2306,7 @@ function renderWall(){
   });
   return `
   <div class="wall-head">
+    ${avatarWidget}
     <h3>My badge wall</h3>
     <p>${done.length} peak${done.length!==1?'s':''} badged · ${totalElev.toLocaleString()} masl climbed total</p>
     ${streak > 0 ? `<p class="streak-line">🔥 ${streak}-week climbing streak</p>` : ``}
@@ -2369,6 +2397,35 @@ function renderRankings(){
 }
 
 function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+const AVATAR_COLORS = ["var(--rust)","var(--gold)","var(--moss)","var(--teal)","var(--amber)","var(--brick)"];
+function avatarColorFor(name){
+  return AVATAR_COLORS[hashId(String(name||"?")) % AVATAR_COLORS.length];
+}
+function renderAvatar(name, avatarUrl, size){
+  size = size || 40;
+  if(avatarUrl){
+    return `<img class="avatar-img" src="${esc(avatarUrl)}" style="width:${size}px; height:${size}px;" alt="">`;
+  }
+  const initial = String(name||"?").trim().charAt(0).toUpperCase() || "?";
+  return `<div class="avatar-fallback" style="width:${size}px; height:${size}px; font-size:${Math.round(size*0.42)}px; background:${avatarColorFor(name)};">${esc(initial)}</div>`;
+}
+
+async function uploadAvatarFromInput(inputEl){
+  const file = inputEl.files && inputEl.files[0];
+  if(!file) return;
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g,"") || "jpg";
+  const path = `${state.user.id}/avatar.${ext}`;
+  const { error: upErr } = await sb.storage.from("climb-photos").upload(path, file, { upsert: true });
+  if(upErr){ showToast("Could not upload photo: "+upErr.message); return; }
+  const { data } = sb.storage.from("climb-photos").getPublicUrl(path);
+  const url = data.publicUrl + "?t=" + Date.now();
+  const { error } = await sb.from("profiles").update({ avatar_url: url }).eq("id", state.user.id);
+  if(error){ showToast("Could not save photo: "+error.message); return; }
+  state.profile.avatar_url = url;
+  render();
+  showToast("Profile photo updated.");
+}
 
 function isAdmin(){ return !!(state.profile && state.profile.is_admin); }
 function canEditMountain(m){ return isAdmin() || (state.user && m.createdBy === state.user.id); }
@@ -2491,6 +2548,10 @@ app.addEventListener("input", (e)=>{
 });
 
 app.addEventListener("change", (e)=>{
+  if(e.target.id === "avatar-input"){
+    uploadAvatarFromInput(e.target);
+    return;
+  }
   if(e.target.id === "sort-select"){
     state.sort = e.target.value;
     state.visibleCounts = {};
