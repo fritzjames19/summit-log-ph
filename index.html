@@ -10,13 +10,13 @@
 /* Google Fonts import removed — this sandbox restricts external network calls at load time, which was blocking the page from rendering. Font stacks below already fall back to system sans-serif/monospace fonts safely. */
 
 :root{
-  --bg: #f0f2f5;
-  --bg-raised: #ffffff;
-  --canvas: #ffffff;
-  --canvas-dim: #eef0f3;
-  --ink: #1c1e21;
-  --ink-soft: #65676b;
-  --thread: #d7dadf;
+  --bg: #202b21;
+  --bg-raised: #263323;
+  --canvas: #f2e9d0;
+  --canvas-dim: #e8dcb8;
+  --ink: #f2e9d0;
+  --ink-soft: #cdbf97;
+  --thread: #7c6a3f;
   --moss: #6b8f5c;
   --moss-d: #35401e;
   --moss-tint: #e9f1e5;
@@ -39,17 +39,17 @@
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.08);
-  --shadow-md: 0 4px 14px rgba(0,0,0,0.1);
-  --shadow-lg: 0 12px 32px rgba(0,0,0,0.16);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.25);
+  --shadow-md: 0 6px 20px -4px rgba(0,0,0,0.4);
+  --shadow-lg: 0 16px 44px -8px rgba(0,0,0,0.55);
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
 }
 *{box-sizing:border-box;}
 ::selection{background:var(--rust); color:#fff3e9;}
 ::-webkit-scrollbar{width:11px; height:11px;}
 ::-webkit-scrollbar-track{background:var(--bg);}
-::-webkit-scrollbar-thumb{background:#c4c8ce; border-radius:20px; border:2px solid var(--bg);}
-::-webkit-scrollbar-thumb:hover{background:#a8adb5;}
+::-webkit-scrollbar-thumb{background:#33452f; border-radius:20px; border:2px solid var(--bg);}
+::-webkit-scrollbar-thumb:hover{background:var(--thread);}
 :focus-visible{outline:2px solid var(--gold); outline-offset:2px; border-radius:2px;}
 @media (prefers-reduced-motion: reduce){
   *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
@@ -92,14 +92,14 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .ridge-box{width:100%; overflow:hidden; border-radius:var(--radius-sm); background:linear-gradient(to bottom, #16351f 0%, #0f2016 100%);}
 .ridge-box svg{display:block; width:100%; height:auto;}
 .rank-note{margin-top:10px; font-size:13px; color:var(--ink-soft);}
-.rank-note b{color:#9a7b0a;}
+.rank-note b{color:var(--gold);}
 
 .onboard{max-width:440px; margin:60px auto; background:var(--canvas); color:var(--ink); border-radius:var(--radius-lg); padding:32px 30px; border:1px solid rgba(0,0,0,0.06); box-shadow:var(--shadow-lg);}
 .onboard h2{font-size:22px; margin-bottom:6px;}
 .onboard p{font-size:14px; color:var(--ink-soft); line-height:1.6; margin:0 0 18px;}
 .onboard input{
   width:100%; padding:11px 13px; font-size:15px; font-family:'Inter',sans-serif;
-  border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#f0f2f5; color:var(--ink); margin-bottom:14px;
+  border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#fffdf4; color:var(--ink); margin-bottom:14px;
 }
 .onboard input:focus{border-color:var(--rust); box-shadow:0 0 0 3px rgba(181,80,46,0.15); outline:none;}
 .onboard button, .btn{
@@ -121,14 +121,14 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .avatar-upload-btn input{display:none;}
 .namebar-inline{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
 .people-row-avatar{margin-right:2px;}
-.namebar a{color:#9a7b0a; cursor:pointer; text-decoration:underline;}
+.namebar a{color:var(--gold); cursor:pointer; text-decoration:underline;}
 
 .group{margin-bottom:26px;}
 .group-head{display:flex; align-items:center; gap:10px; margin-bottom:12px; cursor:pointer; user-select:none; padding:6px 8px; margin-left:-8px; border-radius:var(--radius-sm);}
 .group-head:hover{background:rgba(0,0,0,0.05);}
 .group-chevron{margin-left:auto; font-size:10px; color:var(--ink-soft); transition:transform 0.2s var(--ease);}
 .expand-all-row{margin:2px 0 16px;}
-.expand-all-row a{font-size:12px; color:#9a7b0a; cursor:pointer; text-decoration:underline; text-underline-offset:2px;}
+.expand-all-row a{font-size:12px; color:var(--gold); cursor:pointer; text-decoration:underline; text-underline-offset:2px;}
 .load-more-btn{display:block; width:100%; margin:14px 0 4px; padding:10px 0; font-size:12px;}
 .group-head h3{font-size:15px; color:var(--ink);}
 .group-head .swatch{width:11px; height:11px; border-radius:50%; box-shadow:0 0 0 3px rgba(0,0,0,0.08);}
@@ -138,9 +138,9 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .controls-row{display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;}
 .controls-row input[type=text]{flex:1; min-width:180px; padding:10px 13px; font-size:14px; border:1px solid rgba(0,0,0,0.18); border-radius:var(--radius-sm); background:var(--bg-raised); color:var(--ink); font-family:'Inter',sans-serif;}
 .controls-row input[type=text]::placeholder{color:var(--ink-soft);}
-.controls-row input[type=text]:focus{border-color:#9a7b0a; box-shadow:0 0 0 3px rgba(201,162,39,0.15); outline:none;}
+.controls-row input[type=text]:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,162,39,0.15); outline:none;}
 .controls-row select{padding:10px 11px; font-size:13px; border:1px solid rgba(0,0,0,0.18); border-radius:var(--radius-sm); background:var(--bg-raised); color:var(--ink); font-family:'Inter',sans-serif; cursor:pointer;}
-.controls-row select:focus{border-color:#9a7b0a; box-shadow:0 0 0 3px rgba(201,162,39,0.15); outline:none;}
+.controls-row select:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,162,39,0.15); outline:none;}
 .no-results{padding:30px 16px; text-align:center; color:var(--ink-soft); font-size:13px;}
 
 .wall-head{margin-bottom:18px;}
@@ -165,7 +165,7 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .modal-box{background:var(--canvas); color:var(--ink); border-radius:var(--radius-lg); padding:26px; max-width:360px; width:100%; border:1px solid rgba(0,0,0,0.06); box-shadow:var(--shadow-lg); animation:modal-in 0.2s var(--ease);}
 @keyframes modal-in{ from{ transform:translateY(8px) scale(0.98); opacity:0; } to{ transform:translateY(0) scale(1); opacity:1; } }
 .modal-box p{font-size:14px; line-height:1.5; margin:0 0 16px;}
-.modal-box input{width:100%; padding:10px 13px; font-size:14px; border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#f0f2f5; color:var(--ink); margin-bottom:16px; font-family:'Inter',sans-serif;}
+.modal-box input{width:100%; padding:10px 13px; font-size:14px; border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#fffdf4; color:var(--ink); margin-bottom:16px; font-family:'Inter',sans-serif;}
 .modal-box input:focus{border-color:var(--rust); box-shadow:0 0 0 3px rgba(181,80,46,0.15); outline:none;}
 .modal-actions{display:flex; gap:10px; justify-content:flex-end;}
 .modal-actions .btn{padding:9px 16px;}
@@ -227,7 +227,7 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .rank-row{display:grid; grid-template-columns:40px 1fr 90px 110px; align-items:center; gap:6px; padding:10px 16px; font-size:14px; border-bottom:1px solid rgba(0,0,0,0.08);}
 .rank-row.head{color:var(--ink-soft); font-size:11px; text-transform:uppercase; letter-spacing:0.04em; border-bottom:1px solid rgba(0,0,0,0.18);}
 .rank-row.me{background:rgba(197,151,45,0.14);}
-.rank-num{font-family:'Oswald',sans-serif; font-weight:700; color:#9a7b0a;}
+.rank-num{font-family:'Oswald',sans-serif; font-weight:700; color:var(--gold);}
 .rank-name{font-weight:600; cursor:pointer; text-decoration:underline; text-decoration-color:rgba(0,0,0,0.25);}
 .rank-count, .rank-elev{font-family:'JetBrains Mono',monospace; font-size:13px; color:var(--ink-soft); text-align:right;}
 .empty{padding:30px 16px; text-align:center; color:var(--ink-soft); font-size:13px;}
@@ -241,14 +241,14 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .edit-field-row{display:flex; gap:8px;}
 .edit-field-row .edit-field{flex:1;}
 .edit-field label{display:block; font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin-bottom:3px;}
-.edit-field input, .edit-field select{width:100%; padding:7px 9px; font-size:13px; border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#f0f2f5; color:var(--ink); font-family:'Inter',sans-serif;}
+.edit-field input, .edit-field select{width:100%; padding:7px 9px; font-size:13px; border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#fffdf4; color:var(--ink); font-family:'Inter',sans-serif;}
 .edit-field input:focus, .edit-field select:focus{border-color:var(--rust); box-shadow:0 0 0 3px rgba(181,80,46,0.12); outline:none;}
 .edit-actions{display:flex; gap:8px; margin-top:6px;}
 .edit-actions .btn{flex:1; padding:7px 0; font-size:11px;}
 .edit-actions .toggle-btn{flex:1; margin-top:0;}
 .edit-note{font-size:12px; color:var(--ink-soft); margin:-4px 0 18px;}
 
-.modal-box textarea{width:100%; padding:10px 13px; font-size:13px; border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#f0f2f5; color:var(--ink); font-family:'Inter',sans-serif; margin-bottom:12px; resize:vertical;}
+.modal-box textarea{width:100%; padding:10px 13px; font-size:13px; border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#fffdf4; color:var(--ink); font-family:'Inter',sans-serif; margin-bottom:12px; resize:vertical;}
 .modal-box textarea:focus{border-color:var(--rust); box-shadow:0 0 0 3px rgba(181,80,46,0.15); outline:none;}
 .modal-field-label{display:block; font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:var(--ink-soft); margin-bottom:4px;}
 .modal-box input[type=file]{margin-bottom:10px; font-size:12px; width:100%;}
@@ -260,10 +260,10 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .photo-lightbox img{max-width:90vw; max-height:85vh; border-radius:var(--radius-md); box-shadow:var(--shadow-lg);}
 
 .post-composer{background:var(--canvas); color:var(--ink); border-radius:var(--radius-md); padding:18px; border:1px solid rgba(0,0,0,0.06); box-shadow:var(--shadow-sm); margin-bottom:22px;}
-.post-composer textarea{width:100%; padding:10px 13px; font-size:14px; border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#f0f2f5; color:var(--ink); font-family:'Inter',sans-serif; resize:vertical; margin-bottom:10px;}
+.post-composer textarea{width:100%; padding:10px 13px; font-size:14px; border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#fffdf4; color:var(--ink); font-family:'Inter',sans-serif; resize:vertical; margin-bottom:10px;}
 .post-composer textarea:focus{border-color:var(--rust); box-shadow:0 0 0 3px rgba(181,80,46,0.12); outline:none;}
 .composer-row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
-.composer-row select{padding:9px 11px; font-size:12.5px; border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#f0f2f5; color:var(--ink); font-family:'Inter',sans-serif; flex:1; min-width:160px;}
+.composer-row select{padding:9px 11px; font-size:12.5px; border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#fffdf4; color:var(--ink); font-family:'Inter',sans-serif; flex:1; min-width:160px;}
 .composer-row input[type=file]{font-size:12px; flex:1; min-width:160px;}
 .feed-list{display:flex; flex-direction:column; gap:16px;}
 .post-card{background:var(--canvas); color:var(--ink); border-radius:var(--radius-md); padding:16px 18px; border:1px solid rgba(0,0,0,0.06); box-shadow:var(--shadow-sm);}
@@ -291,7 +291,7 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .comment-row{font-size:12.5px; line-height:1.5;}
 .comment-row b{font-family:'Oswald',sans-serif; font-weight:600; margin-right:4px;}
 .comment-input-row{display:flex; gap:8px; margin-top:6px;}
-.comment-input-row input{flex:1; padding:8px 11px; font-size:12.5px; border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#f0f2f5; color:var(--ink); font-family:'Inter',sans-serif;}
+.comment-input-row input{flex:1; padding:8px 11px; font-size:12.5px; border:1px solid rgba(0,0,0,0.12); border-radius:var(--radius-sm); background:#fffdf4; color:var(--ink); font-family:'Inter',sans-serif;}
 .comment-input-row input:focus{border-color:var(--rust); box-shadow:0 0 0 3px rgba(181,80,46,0.12); outline:none;}
 .comment-input-row .btn{padding:7px 14px; font-size:11px;}
 .feed-filter-row{display:flex; gap:8px; margin-bottom:16px;}
@@ -299,7 +299,7 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .feed-filter-btn:hover{border-color:rgba(0,0,0,0.45); color:var(--ink);}
 .feed-filter-btn.active{background:var(--moss); color:#fff; border-color:var(--moss); font-weight:600; box-shadow:var(--shadow-sm);}
 .follow-btn{margin-top:10px;}
-.streak-line{font-size:13px; color:#9a7b0a; margin:4px 0 0;}
+.streak-line{font-size:13px; color:var(--gold); margin:4px 0 0;}
 
 .conv-list{display:flex; flex-direction:column; gap:2px;}
 .conv-row{background:var(--canvas); color:var(--ink); border-radius:var(--radius-md); padding:13px 16px; cursor:pointer; margin-bottom:8px; border:1px solid rgba(0,0,0,0.06); box-shadow:var(--shadow-sm);}
@@ -316,57 +316,80 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .dm-bubble .dm-time{font-size:10px; opacity:0.65; margin-top:3px;}
 .dm-input-row{display:flex; gap:8px; margin-top:10px;}
 .dm-input-row input{flex:1; padding:10px 15px; font-size:13.5px; border:1px solid rgba(0,0,0,0.2); border-radius:20px; background:var(--bg-raised); color:var(--ink); font-family:'Inter',sans-serif;}
-.dm-input-row input:focus{border-color:#9a7b0a; box-shadow:0 0 0 3px rgba(201,162,39,0.15); outline:none;}
+.dm-input-row input:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(201,162,39,0.15); outline:none;}
 .dm-input-row .btn{border-radius:20px; padding:10px 20px;}
 
+
+/* ===== Green theme: which surfaces are cream (dark text) vs green (light text) ===== */
+.card, .post-card, .post-composer, .conv-row, .dm-bubble.theirs, .modal-box, .onboard, .toast, .celebration-card, .fb-widget, .fb-account-menu, .fb-search-results, .chat-panel, .chat-win{
+  --ink:#2a2f22; --ink-soft:#5b5c47; color:var(--ink);
+}
+/* dark-surface tints (these were flipped for the white theme) */
+.group-head:hover{background:rgba(242,233,208,0.06);}
+.group-head .swatch{box-shadow:0 0 0 3px rgba(242,233,208,0.1);}
+.controls-row input[type=text], .controls-row select{border-color:rgba(242,233,208,0.22);}
+.controls-row input[type=text]:focus, .controls-row select:focus, .dm-input-row input:focus{border-color:var(--gold);}
+.wall-grid, .stats-grid, .timeline, .rank-wrap{border-color:rgba(242,233,208,0.1);}
+.timeline-row, .rank-row{border-bottom-color:rgba(242,233,208,0.08);}
+.rank-row.head{border-bottom-color:rgba(242,233,208,0.18);}
+.stat-bar-track{background:rgba(242,233,208,0.1);}
+.rank-name{text-decoration-color:rgba(242,233,208,0.25);}
+.feed-filter-btn{border-color:rgba(242,233,208,0.25);}
+.feed-filter-btn:hover{border-color:rgba(242,233,208,0.5);}
+.dm-input-row input{border-color:rgba(242,233,208,0.25);}
+.hero{background:var(--bg-raised); border:1px solid rgba(242,233,208,0.1); box-shadow:none;}
+.ico{flex-shrink:0; vertical-align:-0.2em;}
+.streak-line .ico, .toggle-btn .ico, .btn .ico, .post-tag .ico, .report-link .ico{vertical-align:-2px;}
+.celebration-emoji{display:flex; align-items:center; justify-content:center; gap:10px; color:var(--gold); margin-bottom:10px; letter-spacing:0;}
 
 /* ===== Facebook-style shell ===== */
 #app{min-height:100vh;}
 #app > .onboard{width:calc(100% - 28px);}
-.fb-topbar{position:sticky; top:0; z-index:60; height:58px; background:#fff; box-shadow:0 1px 2px rgba(0,0,0,0.12); display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 16px;}
+.fb-topbar{position:sticky; top:0; z-index:60; height:58px; background:var(--bg-raised); border-bottom:1px solid rgba(242,233,208,0.1); box-shadow:0 2px 10px rgba(0,0,0,0.25); display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 16px;}
 .fb-top-left{display:flex; align-items:center; gap:10px; min-width:230px; cursor:pointer;}
 .fb-top-left .brand-logo{width:38px; height:38px; display:block;}
-.fb-brand{font-family:'Oswald',sans-serif; font-size:20px; font-weight:700; letter-spacing:0.02em; color:var(--moss-d); text-transform:uppercase; white-space:nowrap;}
+.fb-brand{font-family:'Oswald',sans-serif; font-size:20px; font-weight:700; letter-spacing:0.02em; color:var(--canvas); text-transform:uppercase; white-space:nowrap;}
 .fb-brand b{color:var(--rust);}
 .fb-top-search{position:relative; flex:0 1 360px; width:100%;}
-.fb-top-search input{width:100%; height:40px; border:none; border-radius:20px; background:var(--bg); padding:0 16px; font-size:14px; font-family:'Inter',sans-serif; color:var(--ink);}
+.fb-search-ico{position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--ink-soft); display:flex; pointer-events:none;}
+.fb-top-search input{width:100%; height:40px; border:1px solid transparent; border-radius:20px; background:rgba(242,233,208,0.08); padding:0 16px 0 40px; font-size:14px; font-family:'Inter',sans-serif; color:var(--ink);}
 .fb-top-search input::placeholder{color:var(--ink-soft);}
-.fb-top-search input:focus{outline:none; box-shadow:0 0 0 2px var(--moss);}
-.fb-search-results{position:absolute; top:46px; left:0; right:0; background:#fff; border-radius:12px; box-shadow:var(--shadow-lg); padding:6px; max-height:70vh; overflow:auto; z-index:70;}
+.fb-top-search input:focus{outline:none; border-color:var(--gold); background:rgba(242,233,208,0.12);}
+.fb-search-results{position:absolute; top:46px; left:0; right:0; background:var(--canvas); border-radius:12px; box-shadow:var(--shadow-lg); padding:6px; max-height:70vh; overflow:auto; z-index:70;}
 .fb-search-head{font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft); padding:8px 10px 4px; font-weight:700;}
 .fb-search-item{display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:13.5px;}
-.fb-search-item:hover{background:var(--bg);}
+.fb-search-item:hover{background:rgba(0,0,0,0.06);}
 .fb-search-item span{margin-left:auto; font-size:11.5px; color:var(--ink-soft); text-align:right;}
 .fb-search-empty{padding:14px; text-align:center; color:var(--ink-soft); font-size:13px;}
 .fb-top-icons{display:flex; align-items:center; gap:8px; min-width:230px; justify-content:flex-end;}
-.fb-icon-btn{position:relative; width:42px; height:42px; border-radius:50%; border:none; background:var(--bg); font-size:19px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;}
-.fb-icon-btn:hover{background:#e4e6eb;}
-.fb-icon-btn.active{background:var(--moss-tint); box-shadow:inset 0 0 0 2px var(--moss);}
+.fb-icon-btn{position:relative; width:42px; height:42px; border-radius:50%; border:none; background:rgba(242,233,208,0.1); color:var(--ink); cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;}
+.fb-icon-btn:hover{background:rgba(242,233,208,0.18);}
+.fb-icon-btn.active{background:rgba(107,143,92,0.35); box-shadow:inset 0 0 0 1.5px var(--moss);}
 .fb-avatar-btn{border:none; background:none; padding:0; cursor:pointer; border-radius:50%; display:block;}
 .fb-account-wrap{position:relative;}
 .fb-menu-backdrop{position:fixed; inset:0; z-index:61;}
-.fb-account-menu{position:absolute; right:0; top:50px; width:260px; background:#fff; border-radius:12px; box-shadow:var(--shadow-lg); padding:8px; z-index:62;}
+.fb-account-menu{position:absolute; right:0; top:50px; width:260px; background:var(--canvas); border-radius:12px; box-shadow:var(--shadow-lg); padding:8px; z-index:62;}
 .fb-account-menu a{display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:8px; cursor:pointer; font-size:14px; color:var(--ink); font-weight:500;}
-.fb-account-menu a:hover{background:var(--bg);}
+.fb-account-menu a:hover{background:rgba(0,0,0,0.06);}
 .fb-account-menu .notif-badge{position:static; margin-left:auto;}
-.fb-menu-profile{border-bottom:1px solid var(--thread); border-radius:8px 8px 0 0 !important; margin-bottom:4px;}
+.fb-menu-profile{border-bottom:1px solid rgba(0,0,0,0.1); border-radius:8px 8px 0 0 !important; margin-bottom:4px;}
 .fb-menu-profile small{display:block; font-size:11.5px; color:var(--ink-soft); font-weight:400;}
 
 .fb-layout{display:grid; grid-template-columns:270px minmax(0,640px) 310px; gap:20px; justify-content:center; padding:16px 16px 90px; max-width:1360px; margin:0 auto; align-items:start;}
 .fb-left, .fb-right{position:sticky; top:74px; max-height:calc(100vh - 90px); overflow-y:auto; scrollbar-width:none;}
 .fb-left::-webkit-scrollbar, .fb-right::-webkit-scrollbar{display:none;}
-.fb-nav-profile{display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700; font-size:15px; margin-bottom:6px;}
-.fb-nav-profile:hover, .fb-nav-item:hover{background:rgba(0,0,0,0.05);}
+.fb-nav-profile{display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:10px; cursor:pointer; font-weight:700; font-size:15px; margin-bottom:6px; color:var(--ink);}
+.fb-nav-profile:hover, .fb-nav-item:hover{background:rgba(242,233,208,0.07);}
 .fb-nav-item{display:flex; align-items:center; gap:12px; padding:9px 12px; border-radius:10px; font-size:15px; font-weight:600; color:var(--ink); cursor:pointer; position:relative;}
-.fb-nav-item.active{background:var(--moss-tint); color:var(--moss-d);}
-.fb-nav-ico{width:36px; height:36px; border-radius:50%; background:#e4e6eb; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;}
-.fb-nav-item.active .fb-nav-ico{background:#fff; box-shadow:0 0 0 2px var(--moss);}
+.fb-nav-item.active{background:rgba(107,143,92,0.28);}
+.fb-nav-ico{width:36px; height:36px; border-radius:50%; background:rgba(242,233,208,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.fb-nav-item.active .fb-nav-ico{background:var(--moss); color:#fff;}
 .fb-nav-item .notif-badge{position:static; margin-left:auto;}
 
 .fb-center{min-width:0;}
 .fb-widget{background:var(--canvas); border-radius:var(--radius-md); box-shadow:var(--shadow-sm); padding:14px 16px; margin-bottom:14px;}
-.fb-widget-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:10px;}
-.fb-widget-head h4{margin:0; font-family:'Oswald',sans-serif; font-size:15px; text-transform:uppercase; letter-spacing:0.03em;}
+.fb-widget-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+.fb-widget-head h4{margin:0; font-family:'Oswald',sans-serif; font-size:15px; text-transform:uppercase; letter-spacing:0.03em; display:flex; align-items:center; gap:7px;}
 .fb-widget-head a{font-size:12.5px; color:var(--rust); cursor:pointer; font-weight:600;}
 .fb-widget-head a:hover{text-decoration:underline;}
 .fb-widget-sub{font-size:12.5px; color:var(--ink-soft); margin-top:8px; line-height:1.45;}
@@ -376,7 +399,7 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .fb-stat-grid span{font-size:11px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em;}
 .fb-rank-row{display:flex; align-items:center; gap:10px; padding:6px 6px; border-radius:8px; font-size:13.5px;}
 .fb-rank-row.me{background:var(--gold-tint);}
-.fb-rank-n{font-family:'Oswald',sans-serif; font-weight:700; color:#9a7b0a; width:18px;}
+.fb-rank-n{font-family:'Oswald',sans-serif; font-weight:700; color:#8a6d0a; width:18px;}
 .fb-rank-name{flex:1; font-weight:600; cursor:pointer; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 .fb-rank-name:hover{text-decoration:underline;}
 .fb-rank-c{font-size:12px; color:var(--ink-soft);}
@@ -387,6 +410,42 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .fb-follow-btn:hover{background:#d9e8d2;}
 
 .fb-bottomnav{display:none;}
+
+/* ===== Messenger dock: conversation list + floating chat windows ===== */
+.chat-dock{position:fixed; bottom:0; right:18px; z-index:55; display:flex; flex-direction:row-reverse; align-items:flex-end; gap:12px; pointer-events:none;}
+.chat-dock > *{pointer-events:auto;}
+.chat-panel, .chat-win{width:320px; background:var(--canvas); border-radius:12px 12px 0 0; box-shadow:var(--shadow-lg); display:flex; flex-direction:column; overflow:hidden; border:1px solid rgba(0,0,0,0.15); border-bottom:none;}
+.chat-win{height:440px;}
+.chat-panel{height:min(480px,70vh);}
+.chat-win.min, .chat-panel.collapsed{height:46px;}
+.chat-win-head, .chat-panel-head{display:flex; align-items:center; gap:4px; padding:0 8px 0 12px; height:46px; flex-shrink:0; background:var(--moss-d); color:var(--canvas); cursor:pointer; user-select:none;}
+.chat-win-who{display:flex; align-items:center; gap:9px; min-width:0; flex:1; font-family:'Oswald',sans-serif; font-weight:600; font-size:14px; letter-spacing:0.02em;}
+.chat-win-who > span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.chat-win-who .notif-badge{position:static; flex-shrink:0;}
+.chat-hbtn{width:30px; height:30px; border-radius:50%; border:none; background:transparent; color:var(--canvas); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; flex-shrink:0;}
+.chat-hbtn:hover{background:rgba(242,233,208,0.18);}
+.chat-body{flex:1; overflow-y:auto; padding:12px 10px; display:flex; flex-direction:column; gap:6px; background:var(--canvas);}
+.chat-body .dm-bubble{max-width:82%; font-size:13px; padding:7px 11px; box-shadow:none;}
+.chat-body .dm-bubble.theirs{background:var(--canvas-dim);}
+.dm-text{overflow-wrap:anywhere;}
+.chat-input-row{display:flex; gap:6px; padding:8px; border-top:1px solid rgba(0,0,0,0.1); background:var(--canvas); flex-shrink:0;}
+.chat-input{flex:1; min-width:0; border:1px solid rgba(0,0,0,0.15); border-radius:18px; background:#fffdf4; padding:8px 13px; font-size:13px; color:var(--ink); font-family:'Inter',sans-serif;}
+.chat-input:focus{outline:none; border-color:var(--rust); box-shadow:0 0 0 3px rgba(181,80,46,0.12);}
+.chat-send{width:34px; height:34px; border-radius:50%; border:none; background:var(--rust); color:#fff3e9; display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; flex-shrink:0;}
+.chat-send:hover{background:#9c4426;}
+.chat-panel-body{flex:1; display:flex; flex-direction:column; min-height:0; background:var(--canvas);}
+.chat-panel-search{padding:10px; flex-shrink:0;}
+.chat-panel-search input{width:100%; border:1px solid rgba(0,0,0,0.15); border-radius:18px; background:#fffdf4; padding:8px 13px; font-size:13px; color:var(--ink); font-family:'Inter',sans-serif;}
+.chat-panel-search input:focus{outline:none; border-color:var(--rust); box-shadow:0 0 0 3px rgba(181,80,46,0.12);}
+.chat-list{flex:1; overflow-y:auto; padding:0 6px 8px;}
+.chat-row{display:flex; align-items:center; gap:10px; padding:8px; border-radius:10px; cursor:pointer;}
+.chat-row:hover{background:rgba(0,0,0,0.06);}
+.chat-row-main{flex:1; min-width:0;}
+.chat-row-name{font-family:'Oswald',sans-serif; font-weight:600; font-size:14px;}
+.chat-row-prev{font-size:12px; color:var(--ink-soft); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.chat-row.unread .chat-row-prev{font-weight:700; color:var(--ink);}
+.chat-dot{width:10px; height:10px; border-radius:50%; background:var(--rust); flex-shrink:0;}
+.chat-empty{padding:26px 16px; text-align:center; font-size:13px; color:var(--ink-soft); line-height:1.5;}
 
 @media (max-width:1100px){
   .fb-layout{grid-template-columns:240px minmax(0,1fr);}
@@ -400,15 +459,18 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
   .fb-top-search{flex:1 1 auto;}
   .fb-top-icons{gap:6px;}
   .fb-home-btn{display:none;}
-  .fb-icon-btn{width:38px; height:38px; font-size:17px;}
+  .fb-icon-btn{width:38px; height:38px;}
   .fb-layout{grid-template-columns:minmax(0,1fr); padding:10px 10px 88px;}
   .fb-left{display:none;}
-  .fb-bottomnav{display:flex; position:fixed; bottom:0; left:0; right:0; z-index:60; background:#fff; border-top:1px solid var(--thread); padding:4px 4px calc(4px + env(safe-area-inset-bottom));}
-  .fb-bnav-item{flex:1; display:flex; flex-direction:column; align-items:center; gap:1px; padding:6px 2px; font-size:19px; line-height:1.1; color:var(--ink-soft); position:relative; border-radius:8px; cursor:pointer;}
+  .fb-bottomnav{display:flex; position:fixed; bottom:0; left:0; right:0; z-index:60; background:var(--bg-raised); border-top:1px solid rgba(242,233,208,0.12); padding:4px 4px calc(4px + env(safe-area-inset-bottom));}
+  .fb-bnav-item{flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 2px; line-height:1.1; color:var(--ink-soft); position:relative; border-radius:8px; cursor:pointer;}
   .fb-bnav-item small{font-size:10px; font-weight:600;}
-  .fb-bnav-item.active{color:var(--moss-d); background:var(--moss-tint);}
+  .fb-bnav-item.active{color:var(--canvas); background:rgba(107,143,92,0.3);}
   .fb-bnav-item .notif-badge{top:2px; right:calc(50% - 20px);}
   .toast{bottom:80px;}
+  .chat-dock{left:0; right:0; display:block;}
+  .chat-panel.collapsed, .chat-win.min{display:none;}
+  .chat-panel.open, .chat-win:not(.min){position:fixed; top:58px; left:0; right:0; bottom:0; width:auto; height:auto; border-radius:0; border:none; z-index:66; pointer-events:auto;}
 }
 
 @media (max-width: 640px){
@@ -934,7 +996,7 @@ function badgeSVG(m, size){
   </svg>`;
 }
 
-let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null, reports:[], following:new Set(), feedFilter:"all", replyingTo:null, conversations:[], activeConversation:null, unreadMessageCount:0, showBulkImport:false, people:[], peopleSearch:"", peopleLoaded:false, accountMenuOpen:false, globalSearch:"" };
+let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null, reports:[], following:new Set(), feedFilter:"all", replyingTo:null, conversations:[], messenger:{open:false, search:""}, chatWindows:[], unreadMessageCount:0, showBulkImport:false, people:[], peopleSearch:"", peopleLoaded:false, accountMenuOpen:false, globalSearch:"" };
 const app = document.getElementById("app");
 
 const HEX = {
@@ -1503,40 +1565,84 @@ async function loadConversations(){
   state.unreadMessageCount = list.reduce((s,c)=>s+c.unread,0);
 }
 
-async function openConversation(partnerId, partnerName){
-  state.activeConversation = { partnerId, partnerName, partnerAvatar: null, messages: [] };
+// ---- Messenger: conversation list + floating chat windows ----
+function isMobileView(){ return !!(window.matchMedia && window.matchMedia("(max-width:760px)").matches); }
+function findChat(pid){ return state.chatWindows.find(x=>x.partnerId===pid); }
+function focusChatInput(pid){ const el = document.getElementById("chat-input-"+pid); if(el) el.focus({preventScroll:true}); }
+
+async function openChat(partnerId, partnerName){
+  let w = findChat(partnerId);
+  if(w){
+    w.minimized = false;
+    state.chatWindows = state.chatWindows.filter(x=>x!==w).concat([w]);
+  } else {
+    w = { partnerId, partnerName, partnerAvatar:null, messages:[], minimized:false, draft:"", loaded:false };
+    state.chatWindows.push(w);
+    const maxWindows = isMobileView() ? 1 : 3;
+    while(state.chatWindows.length > maxWindows) state.chatWindows.shift();
+  }
+  if(isMobileView()) state.messenger.open = false;
   render();
-  const { data: profRow } = await sb.from("profiles").select("avatar_url").eq("id", partnerId).single();
-  state.activeConversation.partnerAvatar = profRow ? profRow.avatar_url : null;
-  const { data, error } = await sb.from("direct_messages")
+  focusChatInput(partnerId);
+  await refreshChat(w);
+}
+
+async function refreshChat(w){
+  const { data: profRow } = await sb.from("profiles").select("avatar_url").eq("id", w.partnerId).single();
+  if(profRow) w.partnerAvatar = profRow.avatar_url;
+  const { data } = await sb.from("direct_messages")
     .select("id, sender_id, recipient_id, content, created_at, read_at")
     .or(`sender_id.eq.${state.user.id},recipient_id.eq.${state.user.id}`)
     .order("created_at", { ascending:true });
-  const thread = (data||[]).filter(m =>
-    (m.sender_id===state.user.id && m.recipient_id===partnerId) ||
-    (m.sender_id===partnerId && m.recipient_id===state.user.id)
+  w.messages = (data||[]).filter(m =>
+    (m.sender_id===state.user.id && m.recipient_id===w.partnerId) ||
+    (m.sender_id===w.partnerId && m.recipient_id===state.user.id)
   );
-  state.activeConversation.messages = thread;
+  w.loaded = true;
+  if(!state.chatWindows.includes(w)) return;
   render();
-  const unread = thread.filter(m=>m.recipient_id===state.user.id && !m.read_at);
+  if(!w.minimized) await markChatRead(w);
+}
+
+async function markChatRead(w){
+  const unread = w.messages.filter(m=>m.recipient_id===state.user.id && !m.read_at);
   for(const m of unread){
-    await sb.from("direct_messages").update({ read_at: new Date().toISOString() }).eq("id", m.id);
+    m.read_at = new Date().toISOString();
+    await sb.from("direct_messages").update({ read_at: m.read_at }).eq("id", m.id);
   }
   if(unread.length){ await loadConversations(); render(); }
 }
 
-async function sendMessage(){
-  const input = document.getElementById("dm-input");
-  const content = input ? input.value.trim() : "";
-  if(!content || !state.activeConversation) return;
-  const partnerId = state.activeConversation.partnerId;
-  const { data, error } = await sb.from("direct_messages").insert({
-    sender_id: state.user.id, recipient_id: partnerId, content
-  }).select().single();
-  if(error){ showToast("Could not send message: "+error.message); return; }
-  state.activeConversation.messages.push(data);
+function closeChat(pid){
+  state.chatWindows = state.chatWindows.filter(x=>x.partnerId!==pid);
   render();
+}
+
+async function toggleMinChat(pid){
+  const w = findChat(pid);
+  if(!w) return;
+  w.minimized = !w.minimized;
+  render();
+  if(!w.minimized){ focusChatInput(pid); await markChatRead(w); }
+}
+
+async function sendChatMessage(pid){
+  const w = findChat(pid);
+  if(!w) return;
+  const input = document.getElementById("chat-input-"+pid);
+  const content = (input ? input.value : (w.draft||"")).trim();
+  if(!content) return;
+  w.draft = "";
+  if(input) input.value = "";
+  const { data, error } = await sb.from("direct_messages").insert({
+    sender_id: state.user.id, recipient_id: pid, content
+  }).select().single();
+  if(error){ showToast("Could not send message: "+error.message); w.draft = content; render(); return; }
+  w.messages.push(data);
+  render();
+  focusChatInput(pid);
   await loadConversations();
+  render();
 }
 
 // ---- Realtime: push new messages in instantly, no polling ----
@@ -1554,22 +1660,25 @@ function subscribeToMessages(){
     .subscribe();
 }
 
+async function handleIncomingMessage(msg){
+  const w = findChat(msg.sender_id);
+  if(w){
+    if(!w.messages.some(m=>m.id===msg.id)) w.messages.push(msg);
+    if(!w.minimized){
+      render();
+      msg.read_at = new Date().toISOString();
+      try{ await sb.from("direct_messages").update({ read_at: msg.read_at }).eq("id", msg.id); }catch(e){}
+    }
+  }
+  await loadConversations();
+  render();
+}
+
 function unsubscribeFromMessages(){
   if(messagesChannel){
     try{ sb.removeChannel(messagesChannel); }catch(e){}
     messagesChannel = null;
   }
-}
-
-async function handleIncomingMessage(msg){
-  const viewingThisThread = state.view === "messages" && state.activeConversation && state.activeConversation.partnerId === msg.sender_id;
-  if(viewingThisThread){
-    state.activeConversation.messages.push(msg);
-    render();
-    try{ await sb.from("direct_messages").update({ read_at: new Date().toISOString() }).eq("id", msg.id); }catch(e){}
-  }
-  await loadConversations();
-  render();
 }
 
 async function deletePostById(postId){
@@ -1658,13 +1767,13 @@ function renderProfile(){
   const streak = computeStreakWeeks(vp.dates);
   return `
   <div class="wall-head">
-    <a data-action="back-from-profile" style="font-size:12px; color:#9a7b0a; cursor:pointer; text-decoration:underline; display:inline-block; margin-bottom:10px;">← Back</a>
+    <a data-action="back-from-profile" style="font-size:12px; color:var(--gold); cursor:pointer; text-decoration:underline; display:inline-block; margin-bottom:10px;">← Back</a>
     <div style="margin-bottom:10px;">${renderAvatar(vp.displayName, vp.avatarUrl, 72)}</div>
     <h3>${esc(vp.displayName)}'s badge wall</h3>
     <p>${done.length} peak${done.length!==1?'s':''} badged · ${totalElev.toLocaleString()} masl climbed total</p>
     <p style="font-size:12.5px; color:var(--ink-soft); margin:2px 0 0;">${vp.followerCount} follower${vp.followerCount!==1?'s':''} · ${vp.followingCount} following</p>
-    ${streak > 0 ? `<p class="streak-line">🔥 ${streak}-week climbing streak</p>` : ``}
-    ${!isMe ? `<button class="btn follow-btn" data-action="toggle-follow" data-user="${vp.userId}">${state.following.has(vp.userId) ? "Following ✓" : "Follow"}</button>
+    ${streak > 0 ? `<p class="streak-line">${icon("flame",15)} ${streak}-week climbing streak</p>` : ``}
+    ${!isMe ? `<button class="btn follow-btn" data-action="toggle-follow" data-user="${vp.userId}">${state.following.has(vp.userId) ? icon("check",14)+" Following" : "Follow"}</button>
     <button class="toggle-btn follow-btn" data-action="message-user" data-user="${vp.userId}" data-name="${esc(vp.displayName)}" style="width:auto; margin-left:8px;">Message</button>` : ``}
   </div>
   ${done.length === 0 ? `<div class="empty">No badges yet.</div>` : `
@@ -1769,7 +1878,7 @@ function renderCelebration(){
   if(!state.celebration) return "";
   return `<div class="celebration">
     <div class="celebration-card">
-      <div class="celebration-emoji">✨ 🏔️ ✨</div>
+      <div class="celebration-emoji">${icon("sparkles",22)}${icon("mountain",34)}${icon("sparkles",22)}</div>
       <div class="celebration-title">${esc(state.celebration.title)}</div>
       <div class="celebration-sub">${esc(state.celebration.sub)}</div>
     </div>
@@ -1779,12 +1888,24 @@ function renderCelebration(){
 function render(){
   if(state.loading){ app.innerHTML = `<div class="wrap"></div>`; return; }
   if(!state.user || !state.profile){ renderAuth(); return; }
+  // remember focus + scroll so typing in a chat is never interrupted by a re-render
+  const ae = document.activeElement;
+  let focusInfo = null;
+  if(ae && ae.id && app.contains(ae) && (ae.tagName === "INPUT" || ae.tagName === "TEXTAREA")){
+    focusInfo = { id: ae.id, start: ae.selectionStart, end: ae.selectionEnd };
+  }
+  const chatScroll = {};
+  app.querySelectorAll("[data-chat-body]").forEach(el=>{
+    chatScroll[el.dataset.chatBody] = { top: el.scrollTop, atBottom: el.scrollHeight - el.scrollTop - el.clientHeight < 8 };
+  });
+  const oldList = app.querySelector(".chat-list");
+  const listTop = oldList ? oldList.scrollTop : 0;
+
   const body = state.view==="log" ? renderLog()
     : state.view==="feed" ? renderFeed()
     : state.view==="wall" ? renderWall()
     : state.view==="profile" ? renderProfile()
     : state.view==="reports" ? renderReportsPanel()
-    : state.view==="messages" ? renderMessages()
     : state.view==="people" ? renderPeople()
     : renderRankings();
   app.innerHTML = renderShell(body)
@@ -1792,6 +1913,20 @@ function render(){
     + renderModal()
     + renderCelebration()
     + (state.lightboxUrl ? `<div class="photo-lightbox"><img src="${esc(state.lightboxUrl)}"></div>` : ``);
+
+  app.querySelectorAll("[data-chat-body]").forEach(el=>{
+    const s = chatScroll[el.dataset.chatBody];
+    el.scrollTop = (!s || s.atBottom) ? el.scrollHeight : s.top;
+  });
+  const newList = app.querySelector(".chat-list");
+  if(newList && listTop) newList.scrollTop = listTop;
+  if(focusInfo){
+    const el = document.getElementById(focusInfo.id);
+    if(el){
+      el.focus({ preventScroll: true });
+      try{ if(focusInfo.start != null) el.setSelectionRange(focusInfo.start, focusInfo.end); }catch(err){}
+    }
+  }
 }
 
 function renderPeople(){
@@ -1815,55 +1950,11 @@ function renderPeople(){
           <div class="conv-name">${esc(p.name)}${p.isAdmin ? ` <span class="admin-tag">admin</span>` : ``}${inactiveNote(p)}</div>
           <div class="conv-preview" style="white-space:normal;">${p.peakCount} peak${p.peakCount!==1?'s':''} badged${p.elev>0 ? ` · ${p.elev.toLocaleString()} masl` : ``}</div>
         </div>
-        <button class="toggle-btn" style="width:auto; margin-top:0; padding:7px 14px; font-size:11px; flex-shrink:0;" data-action="toggle-follow" data-user="${p.id}">${state.following.has(p.id) ? "Following ✓" : "Follow"}</button>
+        <button class="toggle-btn" style="width:auto; margin-top:0; padding:7px 14px; font-size:11px; flex-shrink:0;" data-action="toggle-follow" data-user="${p.id}">${state.following.has(p.id) ? icon("check",14)+" Following" : "Follow"}</button>
       </div>
     `).join("")}
   </div>`}
   `;
-}
-
-function renderMessages(){
-  if(state.activeConversation) return renderConversationThread();
-  if(!state.conversations || state.conversations.length === 0){
-    return `<div class="empty">No conversations yet. Visit a hiker's profile and click "Message" to start one.</div>`;
-  }
-  return `<div class="conv-list">
-    ${state.conversations.map(c=>`
-      <div class="conv-row ${c.unread>0?'unread':''}" data-action="open-conversation" data-user="${c.partnerId}" data-name="${esc(c.partnerName)}" style="display:flex; align-items:center; gap:12px;">
-        ${renderAvatar(c.partnerName, c.partnerAvatar, 36)}
-        <div style="flex:1; min-width:0;">
-          <div class="conv-top">
-            <div class="conv-name">${esc(c.partnerName)}</div>
-            ${c.unread>0 ? `<span class="notif-badge" style="position:static;">${c.unread>9?'9+':c.unread}</span>` : ``}
-            <div class="conv-time">${timeAgo(c.lastMessage.created_at)}</div>
-          </div>
-          <div class="conv-preview">${c.lastMessage.sender_id===state.user.id ? "You: " : ""}${esc((c.lastMessage.content||"").slice(0,70))}</div>
-        </div>
-      </div>
-    `).join("")}
-  </div>`;
-}
-
-function renderConversationThread(){
-  const conv = state.activeConversation;
-  return `
-  <a data-action="back-to-conversations" style="font-size:12px; color:#9a7b0a; cursor:pointer; text-decoration:underline; display:inline-block; margin-bottom:12px;">← Back to messages</a>
-  <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; cursor:pointer;" data-view-profile="${conv.partnerId}" data-profile-name="${esc(conv.partnerName)}">
-    ${renderAvatar(conv.partnerName, conv.partnerAvatar, 34)}
-    <h3 style="display:inline-block;">${esc(conv.partnerName)}</h3>
-  </div>
-  <div class="dm-thread">
-    ${conv.messages.map(m=>`
-      <div class="dm-bubble ${m.sender_id===state.user.id?'mine':'theirs'}">
-        <div class="dm-text">${esc(m.content)}</div>
-        <div class="dm-time">${timeAgo(m.created_at)}</div>
-      </div>
-    `).join("") || `<div class="empty">Say hello!</div>`}
-  </div>
-  <div class="dm-input-row">
-    <input type="text" id="dm-input" placeholder="Write a message...">
-    <button class="btn" data-action="send-message">Send</button>
-  </div>`;
 }
 
 function renderReportsPanel(){
@@ -1939,6 +2030,38 @@ function renderAuth(){
   </div>`;
 }
 
+const ICONS = {
+  "home": '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5"/>',
+  "bell": '<path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  "message": '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+  "trophy": '<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+  "users": '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  "bar-chart": '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+  "route": '<circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/>',
+  "flag": '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/>',
+  "pencil": '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  "key": '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
+  "log-out": '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+  "mountain": '<path d="m8 3 4 8 5-5 5 15H2L8 3z"/>',
+  "flame": '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  "map-pin": '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  "camera": '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+  "clipboard": '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
+  "search": '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  "check": '<path d="M20 6 9 17l-5-5"/>',
+  "x": '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  "minus": '<path d="M5 12h14"/>',
+  "send": '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  "sparkles": '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
+  "award": '<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
+  "chevron-up": '<path d="m18 15-6-6-6 6"/>',
+  "chevron-down": '<path d="m6 9 6 6 6-6"/>'
+};
+function icon(name, size){
+  size = size || 20;
+  return `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name]||""}</svg>`;
+}
+
 const LOGO_SRC = "data:image/png;base64,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";
 
 function badgeCount(n){ return n > 0 ? `<span class="notif-badge">${n>9?'9+':n}</span>` : ``; }
@@ -1967,7 +2090,7 @@ function renderSearchResults(q){
   const ps = (state.people||[]).filter(p=>p.name.toLowerCase().includes(needle)).slice(0,5);
   if(!ms.length && !ps.length) return `<div class="fb-search-results"><div class="fb-search-empty">No results for "${esc(q.trim())}"</div></div>`;
   return `<div class="fb-search-results">
-    ${ms.length ? `<div class="fb-search-head">Mountains</div>` + ms.map(m=>`<div class="fb-search-item" data-action="search-pick-mountain" data-name="${esc(m.name)}">⛰️ <b>${esc(m.name)}</b><span>${esc(m.place)} · ${esc(m.maslRaw)} masl</span></div>`).join("") : ``}
+    ${ms.length ? `<div class="fb-search-head">Mountains</div>` + ms.map(m=>`<div class="fb-search-item" data-action="search-pick-mountain" data-name="${esc(m.name)}">${icon("mountain",16)} <b>${esc(m.name)}</b><span>${esc(m.place)} · ${esc(m.maslRaw)} masl</span></div>`).join("") : ``}
     ${ps.length ? `<div class="fb-search-head">People</div>` + ps.map(p=>`<div class="fb-search-item" data-view-profile="${p.id}" data-profile-name="${esc(p.name)}">${renderAvatar(p.name, p.avatarUrl, 26)} <b>${esc(p.name)}</b><span>${p.peakCount} peak${p.peakCount!==1?'s':''}</span></div>`).join("") : ``}
   </div>`;
 }
@@ -1976,10 +2099,10 @@ function renderAccountMenu(){
   return `<div class="fb-menu-backdrop" data-action="close-account-menu"></div>
   <div class="fb-account-menu">
     <a class="fb-menu-profile" data-tab="wall">${renderAvatar(state.profile.display_name, state.profile.avatar_url, 40)}<div><b>${esc(state.profile.display_name)}</b>${isAdmin() ? ` <span class="admin-tag">admin</span>` : ``}<small>View my profile</small></div></a>
-    <a data-action="rename">✏️ Change name</a>
-    <a data-action="change-password">🔑 Change password</a>
-    ${isAdmin() ? `<a data-tab="reports">🚩 Reports${badgeCount(state.reports ? state.reports.length : 0)}</a>` : ``}
-    <a data-action="sign-out">🚪 Sign out</a>
+    <a data-action="rename">${icon("pencil",18)} Change name</a>
+    <a data-action="change-password">${icon("key",18)} Change password</a>
+    ${isAdmin() ? `<a data-tab="reports">${icon("flag",18)} Reports${badgeCount(state.reports ? state.reports.length : 0)}</a>` : ``}
+    <a data-action="sign-out">${icon("log-out",18)} Sign out</a>
   </div>`;
 }
 
@@ -1988,13 +2111,14 @@ function renderTopbar(){
   return `<header class="fb-topbar">
     <div class="fb-top-left" data-tab="feed"><img class="brand-logo" src="${LOGO_SRC}" alt=""><span class="fb-brand">Summit Log <b>PH</b></span></div>
     <div class="fb-top-search">
+      <span class="fb-search-ico">${icon("search",16)}</span>
       <input type="text" id="global-search" placeholder="Search mountains or people" value="${esc(q)}" autocomplete="off">
       ${q.trim() ? renderSearchResults(q) : ``}
     </div>
     <nav class="fb-top-icons">
-      <button class="fb-icon-btn fb-home-btn ${state.view==='feed'?'active':''}" data-tab="feed" title="Home">🏠</button>
-      <button class="fb-icon-btn" data-tab="feed" title="Notifications">🔔${badgeCount(state.notificationCount)}</button>
-      <button class="fb-icon-btn ${state.view==='messages'?'active':''}" data-tab="messages" title="Messages">💬${badgeCount(state.unreadMessageCount)}</button>
+      <button class="fb-icon-btn fb-home-btn ${state.view==='feed'?'active':''}" data-tab="feed" title="Home">${icon("home",21)}</button>
+      <button class="fb-icon-btn" data-tab="feed" title="Notifications">${icon("bell",21)}${badgeCount(state.notificationCount)}</button>
+      <button class="fb-icon-btn ${state.messenger.open?'active':''}" data-tab="messages" title="Messages">${icon("message",21)}${badgeCount(state.unreadMessageCount)}</button>
       <div class="fb-account-wrap">
         <button class="fb-avatar-btn" data-action="toggle-account-menu" title="Account">${renderAvatar(state.profile.display_name, state.profile.avatar_url, 40)}</button>
         ${state.accountMenuOpen ? renderAccountMenu() : ``}
@@ -2004,16 +2128,16 @@ function renderTopbar(){
 }
 
 function renderLeftNav(){
-  const item = (view, icon, label, badge) => `<a class="fb-nav-item ${state.view===view?'active':''}" data-tab="${view}"><span class="fb-nav-ico">${icon}</span><span>${label}</span>${badge||""}</a>`;
+  const item = (view, ico, label, badge) => `<a class="fb-nav-item ${(view==="messages" ? state.messenger.open : state.view===view)?'active':''}" data-tab="${view}"><span class="fb-nav-ico">${icon(ico,19)}</span><span>${label}</span>${badge||""}</a>`;
   return `<nav class="fb-leftnav">
     <a class="fb-nav-profile" data-tab="wall">${renderAvatar(state.profile.display_name, state.profile.avatar_url, 38)}<span>${esc(state.profile.display_name)}${isAdmin() ? ` <span class="admin-tag">admin</span>` : ``}</span></a>
-    ${item("feed","🏠","Feed", badgeCount(state.notificationCount))}
-    ${item("log","🥾","My Trails")}
-    ${item("wall","🏆","Badges")}
-    ${item("people","👥","People")}
-    ${item("rankings","📊","Rankings")}
-    ${item("messages","💬","Messages", badgeCount(state.unreadMessageCount))}
-    ${isAdmin() ? item("reports","🚩","Reports", badgeCount(state.reports ? state.reports.length : 0)) : ``}
+    ${item("feed","home","Feed", badgeCount(state.notificationCount))}
+    ${item("log","route","My Trails")}
+    ${item("wall","trophy","Badges")}
+    ${item("people","users","People")}
+    ${item("rankings","bar-chart","Rankings")}
+    ${item("messages","message","Messages", badgeCount(state.unreadMessageCount))}
+    ${isAdmin() ? item("reports","flag","Reports", badgeCount(state.reports ? state.reports.length : 0)) : ``}
   </nav>`;
 }
 
@@ -2026,7 +2150,7 @@ function widgetStats(){
   const streak = computeStreakWeeks(state.hikedDates);
   const myRank = state.leaderboard.findIndex(e=>e.userId===state.user.id);
   return `<section class="fb-widget">
-    ${widgetHead("📊 My Stats","", "")}
+    ${widgetHead(icon("bar-chart",17)+" My Stats","", "")}
     <div class="fb-stat-grid">
       <div><b>${done.length}</b><span>Peaks</span></div>
       <div><b>${elev.toLocaleString()}</b><span>masl</span></div>
@@ -2038,21 +2162,21 @@ function widgetStats(){
 function widgetBadges(){
   const done = MOUNTAINS.filter(m=>state.hiked.has(m.id)).sort((a,b)=>b.maslNum-a.maslNum).slice(0,6);
   return `<section class="fb-widget">
-    ${widgetHead("🏆 Badge Wall","See all","wall")}
+    ${widgetHead(icon("trophy",17)+" Badge Wall","See all","wall")}
     ${done.length ? `<div class="fb-badge-row">${done.map(m=>`<div title="${esc(m.name)}">${badgeSVG(m, 46)}</div>`).join("")}</div><div class="fb-widget-sub">${state.hiked.size} of ${MOUNTAINS.length} peaks badged</div>` : `<div class="fb-widget-sub">No badges yet — mark a mountain as hiked to earn your first.</div>`}
   </section>`;
 }
 function widgetRankings(){
   const top = state.leaderboard.slice(0,5);
   return `<section class="fb-widget">
-    ${widgetHead("🥇 Rankings","See all","rankings")}
+    ${widgetHead(icon("award",17)+" Rankings","See all","rankings")}
     ${top.length ? top.map((r,i)=>`<div class="fb-rank-row ${r.userId===state.user.id?'me':''}"><span class="fb-rank-n">${i+1}</span><span class="fb-rank-name" data-view-profile="${r.userId}" data-profile-name="${esc(r.name)}">${esc(r.name)}</span><span class="fb-rank-c">${r.count} peaks</span></div>`).join("") : `<div class="fb-widget-sub">No one on the board yet.</div>`}
   </section>`;
 }
 function widgetPeople(){
   const list = (state.people||[]).filter(p=>!state.following.has(p.id)).slice(0,5);
   return `<section class="fb-widget">
-    ${widgetHead("👥 People to Follow","See all","people")}
+    ${widgetHead(icon("users",17)+" People to Follow","See all","people")}
     ${list.length ? list.map(p=>`<div class="fb-person-row">
       <div data-view-profile="${p.id}" data-profile-name="${esc(p.name)}" style="cursor:pointer;">${renderAvatar(p.name, p.avatarUrl, 36)}</div>
       <div class="fb-person-info" data-view-profile="${p.id}" data-profile-name="${esc(p.name)}"><b>${esc(p.name)}</b><span>${p.peakCount} peak${p.peakCount!==1?'s':''}</span></div>
@@ -2068,22 +2192,72 @@ function renderRightPanel(){
     rankings: [widgetStats, widgetBadges],
     people: [widgetRankings, widgetPeople],
     profile: [widgetBadges, widgetStats],
-    messages: [widgetPeople, widgetRankings],
     reports: [widgetStats]
   };
   return (sets[state.view] || sets.feed).map(fn=>fn()).join("");
 }
 
 function renderBottomNav(){
-  const it = (view, icon, label, badge) => `<a class="fb-bnav-item ${state.view===view?'active':''}" data-tab="${view}"><span>${icon}</span><small>${label}</small>${badge||""}</a>`;
+  const it = (view, ico, label, badge) => `<a class="fb-bnav-item ${(view==="messages" ? state.messenger.open : state.view===view)?'active':''}" data-tab="${view}"><span>${icon(ico,22)}</span><small>${label}</small>${badge||""}</a>`;
   return `<nav class="fb-bottomnav">
-    ${it("feed","🏠","Feed", badgeCount(state.notificationCount))}
-    ${it("log","🥾","Trails")}
-    ${it("wall","🏆","Badges")}
-    ${it("rankings","📊","Ranks")}
-    ${it("people","👥","People")}
-    ${it("messages","💬","Chat", badgeCount(state.unreadMessageCount))}
+    ${it("feed","home","Feed", badgeCount(state.notificationCount))}
+    ${it("log","route","Trails")}
+    ${it("wall","trophy","Badges")}
+    ${it("rankings","bar-chart","Ranks")}
+    ${it("people","users","People")}
+    ${it("messages","message","Chat", badgeCount(state.unreadMessageCount))}
   </nav>`;
+}
+
+function renderMessengerPanel(){
+  const open = state.messenger.open;
+  let body = "";
+  if(open){
+    const q = (state.messenger.search||"").trim().toLowerCase();
+    let rows;
+    if(q){
+      const ppl = (state.people||[]).filter(p=>p.name.toLowerCase().includes(q)).slice(0,8);
+      rows = ppl.length ? ppl.map(p=>`<div class="chat-row" data-action="open-chat" data-user="${p.id}" data-name="${esc(p.name)}">${renderAvatar(p.name, p.avatarUrl, 40)}<div class="chat-row-main"><div class="chat-row-name">${esc(p.name)}</div><div class="chat-row-prev">${p.peakCount} peak${p.peakCount!==1?'s':''} badged</div></div></div>`).join("")
+        : `<div class="chat-empty">No hikers match "${esc(state.messenger.search)}".</div>`;
+    } else if(state.conversations && state.conversations.length){
+      rows = state.conversations.map(cv=>`<div class="chat-row ${cv.unread>0?'unread':''}" data-action="open-chat" data-user="${cv.partnerId}" data-name="${esc(cv.partnerName)}">${renderAvatar(cv.partnerName, cv.partnerAvatar, 40)}<div class="chat-row-main"><div class="chat-row-name">${esc(cv.partnerName)}</div><div class="chat-row-prev">${cv.lastMessage.sender_id===state.user.id ? "You: " : ""}${esc((cv.lastMessage.content||"").slice(0,48))} · ${timeAgo(cv.lastMessage.created_at)}</div></div>${cv.unread>0 ? `<span class="chat-dot"></span>` : ``}</div>`).join("");
+    } else {
+      rows = `<div class="chat-empty">No chats yet.<br>Search for a hiker above to say hello.</div>`;
+    }
+    body = `<div class="chat-panel-body">
+      <div class="chat-panel-search"><input type="text" id="messenger-search" placeholder="Search people" value="${esc(state.messenger.search||"")}" autocomplete="off"></div>
+      <div class="chat-list">${rows}</div>
+    </div>`;
+  }
+  return `<section class="chat-panel ${open?'open':'collapsed'}">
+    <header class="chat-panel-head" data-action="toggle-messenger">
+      <div class="chat-win-who">${icon("message",18)}<span>Messenger</span>${badgeCount(state.unreadMessageCount)}</div>
+      <button class="chat-hbtn" data-action="toggle-messenger" title="${open?'Collapse':'Open'}">${icon(open?"chevron-down":"chevron-up",18)}</button>
+    </header>${body}
+  </section>`;
+}
+
+function renderChatWindow(w){
+  const msgs = w.messages.map(m=>`<div class="dm-bubble ${m.sender_id===state.user.id?'mine':'theirs'}"><div class="dm-text">${esc(m.content)}</div><div class="dm-time">${timeAgo(m.created_at)}</div></div>`).join("")
+    || `<div class="chat-empty">${w.loaded ? `Say hello to ${esc(w.partnerName)}!` : `Loading…`}</div>`;
+  const unreadHere = w.messages.filter(m=>m.recipient_id===state.user.id && !m.read_at).length;
+  return `<section class="chat-win ${w.minimized?'min':''}" data-chat="${w.partnerId}">
+    <header class="chat-win-head" data-action="toggle-min-chat" data-user="${w.partnerId}">
+      <div class="chat-win-who">${renderAvatar(w.partnerName, w.partnerAvatar, 28)}<span>${esc(w.partnerName)}</span>${w.minimized ? badgeCount(unreadHere) : ``}</div>
+      <button class="chat-hbtn" data-action="toggle-min-chat" data-user="${w.partnerId}" title="${w.minimized?'Expand':'Minimize'}">${icon("minus",18)}</button>
+      <button class="chat-hbtn" data-action="close-chat" data-user="${w.partnerId}" title="Close">${icon("x",18)}</button>
+    </header>
+    ${w.minimized ? `` : `<div class="chat-body" data-chat-body="${w.partnerId}">${msgs}</div>
+    <div class="chat-input-row">
+      <input type="text" class="chat-input" id="chat-input-${w.partnerId}" data-chat="${w.partnerId}" placeholder="Write a message…" value="${esc(w.draft||"")}" autocomplete="off">
+      <button class="chat-send" data-action="send-chat" data-user="${w.partnerId}" title="Send">${icon("send",16)}</button>
+    </div>`}
+  </section>`;
+}
+
+function renderChatDock(){
+  const wins = state.chatWindows.slice().reverse();
+  return `<div class="chat-dock">${renderMessengerPanel()}${wins.map(renderChatWindow).join("")}</div>`;
 }
 
 function renderShell(body){
@@ -2093,7 +2267,8 @@ function renderShell(body){
     <main class="fb-center">${state.view==='log' ? renderLogHero() : ``}${body}</main>
     <aside class="fb-right">${renderRightPanel()}</aside>
   </div>
-  ${renderBottomNav()}`;
+  ${renderBottomNav()}
+  ${renderChatDock()}`;
 }
 
 const REGION_MAP = [
@@ -2158,7 +2333,7 @@ Mt. Another,Province,Difficult,987+"></textarea>
   if(!state.addingMountain){
     return `<div style="margin:2px 0 24px; display:flex; gap:10px; flex-wrap:wrap;">
       <button class="btn" data-action="show-add-mountain">+ Add a mountain not listed</button>
-      <button class="toggle-btn" data-action="show-bulk-import" style="width:auto; margin-top:0;">📋 Paste a list instead</button>
+      <button class="toggle-btn" data-action="show-bulk-import" style="width:auto; margin-top:0;">${icon("clipboard",16)} Paste a list instead</button>
     </div>`;
   }
   return `<div class="card editing" style="max-width:340px; margin:2px 0 24px;">
@@ -2256,7 +2431,7 @@ function cardHTML(m){
       <div class="masl">${m.maslRaw}<small> masl</small></div>
       <div class="diff-pill" style="background:${c.tint}; color:${c.dk}">${esc(m.difficulty)}</div>
     </div>
-    <button class="toggle-btn" data-toggle="${m.id}">${done ? "Badge earned ✓" : "Mark as hiked"}</button>
+    <button class="toggle-btn" data-toggle="${m.id}">${done ? icon("check",14)+" Badge earned" : "Mark as hiked"}</button>
     ${done ? `<div class="climb-date">${dateStr ? esc(formatDate(dateStr)) : "No date logged"} · <a data-edit-date="${m.id}">${dateStr ? "edit" : "add date"}</a></div>` : ``}
     ${done && (notesStr || photoUrl) ? `<div class="climb-meta">
       ${photoUrl ? `<img class="climb-photo-thumb" src="${esc(photoUrl)}" data-view-photo="${esc(photoUrl)}">` : ``}
@@ -2406,13 +2581,13 @@ function renderFeed(){
         <div class="post-time">${timeAgo(p.createdAt)}</div>
         ${p.userId === state.user.id ? `<a data-action="delete-post" data-post="${p.id}" style="margin-left:auto; font-size:11px; color:var(--rust); text-decoration:underline; cursor:pointer;">delete</a>` : ``}
       </div>
-      ${p.mountainName ? `<div class="post-tag">📍 ${esc(p.mountainName)}</div>` : ``}
+      ${p.mountainName ? `<div class="post-tag">${icon("map-pin",14)} ${esc(p.mountainName)}</div>` : ``}
       ${p.content ? `<p class="post-content">${esc(p.content)}</p>` : ``}
       ${renderPostPhotos(p.photoUrls)}
       <div class="post-actions">
         <button class="post-like-btn ${p.likedByMe?'liked':''}" data-action="toggle-like" data-post="${p.id}">${HEART_ICON(p.likedByMe)}${p.likeCount}</button>
         <button class="post-comment-btn" data-action="toggle-comments" data-post="${p.id}">${COMMENT_ICON()}${p.comments.length}</button>
-        ${p.userId !== state.user.id ? `<button class="report-link" data-action="open-report-post" data-post="${p.id}">🚩 Report</button>` : ``}
+        ${p.userId !== state.user.id ? `<button class="report-link" data-action="open-report-post" data-post="${p.id}">${icon("flag",13)} Report</button>` : ``}
       </div>
       ${commentsOpen ? `
         <div class="comments-list">
@@ -2433,7 +2608,7 @@ function renderWall(){
   const done = MOUNTAINS.filter(m=>state.hiked.has(m.id)).sort((a,b)=>b.maslNum-a.maslNum);
   const avatarWidget = `<div class="avatar-upload-wrap">
     ${renderAvatar(state.profile.display_name, state.profile.avatar_url, 88)}
-    <label class="avatar-upload-btn" title="Change profile photo">📷<input type="file" id="avatar-input" accept="image/*"></label>
+    <label class="avatar-upload-btn" title="Change profile photo">${icon("camera",16)}<input type="file" id="avatar-input" accept="image/*"></label>
   </div>`;
   if(done.length === 0){
     return avatarWidget + `<div class="empty">Your board is empty. Mark a mountain as hiked on the Trail log to add your first patch.</div>`;
@@ -2452,7 +2627,7 @@ function renderWall(){
     ${avatarWidget}
     <h3>My badge wall</h3>
     <p>${done.length} peak${done.length!==1?'s':''} badged · ${totalElev.toLocaleString()} masl climbed total</p>
-    ${streak > 0 ? `<p class="streak-line">🔥 ${streak}-week climbing streak</p>` : ``}
+    ${streak > 0 ? `<p class="streak-line">${icon("flame",15)} ${streak}-week climbing streak</p>` : ``}
     <div class="wall-actions">
       <button class="btn" data-action="copy-summary">Copy my summary</button>
       <button class="toggle-btn" data-action="download-wall">Download as image</button>
@@ -2636,6 +2811,7 @@ async function submitNewPassword(){
 async function signOutUser(){
   await sb.auth.signOut();
   unsubscribeFromMessages();
+  state.chatWindows = []; state.messenger = { open:false, search:"" }; state.conversations = []; state.unreadMessageCount = 0; state.accountMenuOpen = false;
   state.user = null;
   state.profile = null;
   state.hiked = new Set();
@@ -2682,6 +2858,14 @@ app.addEventListener("input", (e)=>{
     render();
     const el = document.getElementById("search-input");
     if(el){ el.focus(); const len = el.value.length; el.setSelectionRange(len, len); }
+  }
+  if(e.target.classList && e.target.classList.contains("chat-input")){
+    const cw = findChat(e.target.dataset.chat);
+    if(cw) cw.draft = e.target.value;
+  }
+  if(e.target.id === "messenger-search"){
+    state.messenger.search = e.target.value;
+    render();
   }
   if(e.target.id === "global-search"){
     state.globalSearch = e.target.value;
@@ -2754,9 +2938,9 @@ app.addEventListener("keydown", (e)=>{
       addComment(state.replyingTo.postId, state.replyingTo.commentId);
     }
   }
-  if(e.key === "Enter" && e.target.id === "dm-input"){
+  if(e.key === "Enter" && e.target.classList && e.target.classList.contains("chat-input")){
     e.preventDefault();
-    sendMessage();
+    sendChatMessage(e.target.dataset.chat);
   }
 });
 
@@ -2822,7 +3006,7 @@ app.addEventListener("click", async (e)=>{
     state.globalSearch = "";
     state.search = pickMtn.dataset.name;
     state.status = "all"; state.region = "all"; state.sort = "groups"; state.visibleCounts = {};
-    state.view = "log"; state.viewingProfile = null; state.activeConversation = null;
+    state.view = "log"; state.viewingProfile = null;
     render();
     return;
   }
@@ -2831,9 +3015,14 @@ app.addEventListener("click", async (e)=>{
   if(tabBtn){
     state.accountMenuOpen = false;
     state.globalSearch = "";
+    if(tabBtn.dataset.tab === "messages"){
+      state.messenger.open = !state.messenger.open;
+      render();
+      if(state.messenger.open){ await loadConversations(); render(); }
+      return;
+    }
     state.view = tabBtn.dataset.tab;
     state.viewingProfile = null;
-    if(state.view !== "messages") state.activeConversation = null;
     render();
     if(state.view === "feed"){
       await loadFeed();
@@ -2841,9 +3030,6 @@ app.addEventListener("click", async (e)=>{
       render();
     } else if(state.view === "reports" && isAdmin()){
       await loadReports();
-      render();
-    } else if(state.view === "messages"){
-      await loadConversations();
       render();
     } else if(state.view === "people"){
       await loadPeople();
@@ -2855,21 +3041,28 @@ app.addEventListener("click", async (e)=>{
     return;
   }
 
-  const openConvRow = e.target.closest('[data-action="open-conversation"]');
-  if(openConvRow){ await openConversation(openConvRow.dataset.user, openConvRow.dataset.name); return; }
+  const openChatEl = e.target.closest('[data-action="open-chat"]');
+  if(openChatEl){ await openChat(openChatEl.dataset.user, openChatEl.dataset.name); return; }
 
-  const backToConvBtn = e.target.closest('[data-action="back-to-conversations"]');
-  if(backToConvBtn){ state.activeConversation = null; await loadConversations(); render(); return; }
+  const closeChatBtn = e.target.closest('[data-action="close-chat"]');
+  if(closeChatBtn){ closeChat(closeChatBtn.dataset.user); return; }
 
-  const sendMsgBtn = e.target.closest('[data-action="send-message"]');
-  if(sendMsgBtn){ await sendMessage(); return; }
+  const minChatEl = e.target.closest('[data-action="toggle-min-chat"]');
+  if(minChatEl){ await toggleMinChat(minChatEl.dataset.user); return; }
 
-  const messageUserBtn = e.target.closest('[data-action="message-user"]');
-  if(messageUserBtn){
-    state.view = "messages";
-    await openConversation(messageUserBtn.dataset.user, messageUserBtn.dataset.name);
+  const sendChatBtn = e.target.closest('[data-action="send-chat"]');
+  if(sendChatBtn){ await sendChatMessage(sendChatBtn.dataset.user); return; }
+
+  const toggleMsgr = e.target.closest('[data-action="toggle-messenger"]');
+  if(toggleMsgr){
+    state.messenger.open = !state.messenger.open;
+    render();
+    if(state.messenger.open){ await loadConversations(); render(); }
     return;
   }
+
+  const messageUserBtn = e.target.closest('[data-action="message-user"]');
+  if(messageUserBtn){ await openChat(messageUserBtn.dataset.user, messageUserBtn.dataset.name); return; }
 
   const openReportPostBtn = e.target.closest('[data-action="open-report-post"]');
   if(openReportPostBtn){
@@ -2895,7 +3088,7 @@ app.addEventListener("click", async (e)=>{
   if(viewProfileEl){
     const uid = viewProfileEl.dataset.viewProfile;
     const name = viewProfileEl.dataset.profileName;
-    state.globalSearch = ""; state.accountMenuOpen = false; state.activeConversation = null;
+    state.globalSearch = ""; state.accountMenuOpen = false;
     if(uid === state.user.id){ state.view = "wall"; render(); return; }
     await openUserProfile(uid, name);
     return;
@@ -3149,6 +3342,7 @@ app.addEventListener("click", async (e)=>{
     }
     if(event === "SIGNED_OUT"){
       unsubscribeFromMessages();
+      state.chatWindows = []; state.messenger = { open:false, search:"" }; state.conversations = []; state.unreadMessageCount = 0; state.accountMenuOpen = false;
       state.user = null;
       state.profile = null;
       state.hiked = new Set();
