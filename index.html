@@ -320,6 +320,35 @@ h1,h2,h3{font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spaci
 .dm-input-row .btn{border-radius:20px; padding:10px 20px;}
 
 
+/* ===== Profile header with cover photo ===== */
+.profile-card{background:var(--bg-raised); border:1px solid rgba(242,233,208,0.1); border-radius:var(--radius-md); overflow:hidden; margin-bottom:16px;}
+.profile-cover{position:relative; height:220px; background:#12261d; overflow:hidden;}
+.profile-cover > svg, .profile-cover-img{position:absolute; inset:0; width:100%; height:100%; display:block;}
+.profile-cover-img{object-fit:cover; cursor:zoom-in;}
+.cover-edit-btn{position:absolute; right:12px; bottom:12px; display:inline-flex; align-items:center; gap:7px; padding:8px 13px; border-radius:8px; background:rgba(12,22,15,0.74); color:#f2e9d0; font-size:12.5px; font-weight:600; cursor:pointer; border:1px solid rgba(242,233,208,0.28);}
+.cover-edit-btn:hover{background:rgba(12,22,15,0.9);}
+.cover-edit-btn input{display:none;}
+.profile-id{display:flex; gap:18px; align-items:flex-start; padding:0 22px 20px; margin-top:-48px; position:relative;}
+.profile-avatar{flex-shrink:0;}
+.profile-avatar .avatar-img, .profile-avatar .avatar-fallback{border:4px solid var(--bg-raised);}
+.profile-avatar .avatar-upload-wrap{margin:0; width:96px; height:96px;}
+.profile-avatar .avatar-upload-btn{border-color:var(--bg-raised);}
+.profile-id-text{min-width:0; flex:1; padding-top:54px;}
+.profile-id-text h3{font-size:24px; line-height:1.15;}
+.profile-id-text p{font-size:13px; color:var(--ink-soft); margin:5px 0 0;}
+.profile-id-text .streak-line{margin:5px 0 0;}
+.profile-id-text .wall-actions{margin-top:12px;}
+@media (max-width:760px){
+  .profile-cover{height:150px;}
+  .profile-id{padding:0 14px 16px; gap:12px; margin-top:-40px;}
+  .profile-avatar .avatar-img, .profile-avatar .avatar-fallback, .profile-avatar .avatar-upload-wrap{width:80px !important; height:80px !important;}
+  .profile-avatar .avatar-fallback{font-size:32px !important;}
+  .profile-id-text{padding-top:46px;}
+  .profile-id-text h3{font-size:20px;}
+  .cover-edit-btn span{display:none;}
+  .cover-edit-btn{padding:9px;}
+}
+
 /* ===== Sign-in / sign-up: mountain scene + password eye ===== */
 #auth-scene{display:none; position:fixed; inset:0; z-index:0; background:#081a18;}
 #auth-scene svg{width:100%; height:100%; display:block;}
@@ -1775,7 +1804,8 @@ async function openUserProfile(userId, displayName){
   }
   const counts = await loadFollowCounts(userId);
   const { data: profRow } = await sb.from("profiles").select("avatar_url").eq("id", userId).single();
-  state.viewingProfile = { userId, displayName, hiked, dates, followerCount:counts.followers, followingCount:counts.following, avatarUrl: profRow ? profRow.avatar_url : null };
+  const { data: coverRow } = await sb.from("profiles").select("cover_url").eq("id", userId).single();
+  state.viewingProfile = { userId, displayName, hiked, dates, followerCount:counts.followers, followingCount:counts.following, avatarUrl: profRow ? profRow.avatar_url : null, coverUrl: coverRow ? coverRow.cover_url : null };
   state.view = "profile";
   state.loading = false;
   render();
@@ -1789,15 +1819,22 @@ function renderProfile(){
   const isMe = vp.userId === state.user.id;
   const streak = computeStreakWeeks(vp.dates);
   return `
-  <div class="wall-head">
-    <a data-action="back-from-profile" style="font-size:12px; color:var(--gold); cursor:pointer; text-decoration:underline; display:inline-block; margin-bottom:10px;">← Back</a>
-    <div style="margin-bottom:10px;">${renderAvatar(vp.displayName, vp.avatarUrl, 72)}</div>
-    <h3>${esc(vp.displayName)}'s badge wall</h3>
-    <p>${done.length} peak${done.length!==1?'s':''} badged · ${totalElev.toLocaleString()} masl climbed total</p>
-    <p style="font-size:12.5px; color:var(--ink-soft); margin:2px 0 0;">${vp.followerCount} follower${vp.followerCount!==1?'s':''} · ${vp.followingCount} following</p>
-    ${streak > 0 ? `<p class="streak-line">${icon("flame",15)} ${streak}-week climbing streak</p>` : ``}
-    ${!isMe ? `<button class="btn follow-btn" data-action="toggle-follow" data-user="${vp.userId}">${state.following.has(vp.userId) ? icon("check",14)+" Following" : "Follow"}</button>
-    <button class="toggle-btn follow-btn" data-action="message-user" data-user="${vp.userId}" data-name="${esc(vp.displayName)}" style="width:auto; margin-left:8px;">Message</button>` : ``}
+  <a data-action="back-from-profile" style="font-size:12px; color:var(--gold); cursor:pointer; text-decoration:underline; display:inline-block; margin-bottom:10px;">← Back</a>
+  <div class="profile-card">
+    ${renderProfileCover(vp.coverUrl, false)}
+    <div class="profile-id">
+      <div class="profile-avatar">${renderAvatar(vp.displayName, vp.avatarUrl, 96)}</div>
+      <div class="profile-id-text">
+        <h3>${esc(vp.displayName)}</h3>
+        <p>${done.length} peak${done.length!==1?'s':''} badged · ${totalElev.toLocaleString()} masl climbed total</p>
+        <p>${vp.followerCount} follower${vp.followerCount!==1?'s':''} · ${vp.followingCount} following</p>
+        ${streak > 0 ? `<p class="streak-line">${icon("flame",15)} ${streak}-week climbing streak</p>` : ``}
+        ${!isMe ? `<div class="wall-actions">
+          <button class="btn" data-action="toggle-follow" data-user="${vp.userId}">${state.following.has(vp.userId) ? icon("check",14)+" Following" : "Follow"}</button>
+          <button class="toggle-btn" data-action="message-user" data-user="${vp.userId}" data-name="${esc(vp.displayName)}">Message</button>
+        </div>` : ``}
+      </div>
+    </div>
   </div>
   ${done.length === 0 ? `<div class="empty">No badges yet.</div>` : `
   <div class="wall-grid">
@@ -2774,14 +2811,29 @@ function renderFeed(){
 function renderWall(){
   const done = MOUNTAINS.filter(m=>state.hiked.has(m.id)).sort((a,b)=>b.maslNum-a.maslNum);
   const avatarWidget = `<div class="avatar-upload-wrap">
-    ${renderAvatar(state.profile.display_name, state.profile.avatar_url, 88)}
+    ${renderAvatar(state.profile.display_name, state.profile.avatar_url, 96)}
     <label class="avatar-upload-btn" title="Change profile photo">${icon("camera",16)}<input type="file" id="avatar-input" accept="image/*"></label>
   </div>`;
-  if(done.length === 0){
-    return avatarWidget + `<div class="empty">Your board is empty. Mark a mountain as hiked on the Trail log to add your first patch.</div>`;
-  }
   const totalElev = done.reduce((s,m)=>s+m.maslNum,0);
   const streak = computeStreakWeeks(state.hikedDates);
+  const myHeader = `<div class="profile-card">
+    ${renderProfileCover(state.profile.cover_url, true)}
+    <div class="profile-id">
+      <div class="profile-avatar">${avatarWidget}</div>
+      <div class="profile-id-text">
+        <h3>${esc(state.profile.display_name)}</h3>
+        <p>${done.length} peak${done.length!==1?'s':''} badged · ${totalElev.toLocaleString()} masl climbed total</p>
+        ${streak > 0 ? `<p class="streak-line">${icon("flame",15)} ${streak}-week climbing streak</p>` : ``}
+        ${done.length > 0 ? `<div class="wall-actions">
+          <button class="btn" data-action="copy-summary">Copy my summary</button>
+          <button class="toggle-btn" data-action="download-wall">Download as image</button>
+        </div>` : ``}
+      </div>
+    </div>
+  </div>`;
+  if(done.length === 0){
+    return myHeader + `<div class="empty">Your board is empty. Mark a mountain as hiked on the Trail log to add your first patch.</div>`;
+  }
   const timelineSorted = done.slice().sort((a,b)=>{
     const da = state.hikedDates[a.id], db = state.hikedDates[b.id];
     if(da && db) return db.localeCompare(da);
@@ -2790,16 +2842,7 @@ function renderWall(){
     return a.name.localeCompare(b.name);
   });
   return `
-  <div class="wall-head">
-    ${avatarWidget}
-    <h3>My badge wall</h3>
-    <p>${done.length} peak${done.length!==1?'s':''} badged · ${totalElev.toLocaleString()} masl climbed total</p>
-    ${streak > 0 ? `<p class="streak-line">${icon("flame",15)} ${streak}-week climbing streak</p>` : ``}
-    <div class="wall-actions">
-      <button class="btn" data-action="copy-summary">Copy my summary</button>
-      <button class="toggle-btn" data-action="download-wall">Download as image</button>
-    </div>
-  </div>
+  ${myHeader}
   <div class="wall-grid">
     ${done.map(m=>`
       <div class="wall-badge">
@@ -2894,6 +2937,130 @@ function renderAvatar(name, avatarUrl, size){
   }
   const initial = String(name||"?").trim().charAt(0).toUpperCase() || "?";
   return `<div class="avatar-fallback" style="width:${size}px; height:${size}px; font-size:${Math.round(size*0.42)}px; background:${avatarColorFor(name)};">${esc(initial)}</div>`;
+}
+
+function buildCoverScene(){
+  const W = 1200, H = 300;
+  let seed = 7788;
+  const rnd = () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const mkNoise = () => { const p = Array.from({length:256}, rnd); return x => { const i = Math.floor(x), fr = x - i, t = fr*fr*(3-2*fr); const a = p[i & 255], b = p[(i+1) & 255]; return a + (b-a)*t; }; };
+  const f = n => n.toFixed(0);
+  function ridge(o){
+    const noise = mkNoise(), swell = mkNoise(), pts = [];
+    for(let x = -12; x <= W + 12; x += 12){
+      let v = 0, a = 1, fq = o.freq, norm = 0;
+      for(let k = 0; k < o.oct; k++){ const n = noise(x*fq/100 + k*17.3 + o.off); v += a*(1 - Math.abs(2*n - 1)); norm += a; a *= 0.5; fq *= 2.15; }
+      v /= norm;
+      let h = o.amp * (0.55*v + 0.45*swell(x*o.swellFreq/100 + o.off*3));
+      (o.peaks || []).forEach(p => { const d = Math.abs(x - p.x)/p.w; h += p.h*Math.exp(-Math.pow(d, 1.35)*1.7); });
+      pts.push([x, o.base - h]);
+    }
+    return pts;
+  }
+  const area = pts => 'M' + f(pts[0][0]) + ',' + (H + 10) + pts.map(p => ' L' + f(p[0]) + ',' + f(p[1])).join('') + ' L' + f(pts[pts.length-1][0]) + ',' + (H + 10) + ' Z';
+  const yAt = (pts, x) => { const i = Math.max(0, Math.min(pts.length - 2, Math.floor((x - pts[0][0]) / 12))); return pts[i][1] + (pts[i+1][1] - pts[i][1]) * (((x - pts[i][0]) / 12) % 1); };
+  function snow(pts, snowY, fill){
+    let out = '', run = [];
+    const flush = () => {
+      if(run.length > 2){
+        let d = 'M' + f(run[0][0]) + ',' + f(run[0][1]);
+        for(let i = 1; i < run.length; i++) d += ' L' + f(run[i][0]) + ',' + f(run[i][1]);
+        for(let i = run.length - 1; i >= 0; i--){ const x = run[i][0]; const y = snowY + (i % 2 ? 11*rnd() : 4*rnd()) + 4*Math.sin(x*0.09); d += ' L' + f(x) + ',' + f(Math.max(y, run[i][1] + 2)); }
+        out += '<path d="' + d + 'Z" fill="' + fill + '"/>';
+      }
+      run = [];
+    };
+    pts.forEach(p => { if(p[1] < snowY) run.push(p); else flush(); });
+    flush(); return out;
+  }
+  function pines(pts, color, hMin, hMax, gap){
+    let d = '';
+    for(let x = 0; x < W; x += gap*(0.6 + rnd()*0.9)){
+      const y = yAt(pts, x) + 2 + rnd()*4, h = hMin + rnd()*(hMax - hMin), w = h*0.3;
+      const r = [[0.45,-0.62],[0.2,-0.62],[0.75,-0.3],[0.36,-0.3],[1,0]];
+      const right = [[x, y - h]].concat(r.map(q => [x + q[0]*w, y + q[1]*h]));
+      const left = right.slice(1).reverse().map(q => [2*x - q[0], q[1]]);
+      d += 'M' + right.concat(left).map(q => f(q[0]) + ',' + f(q[1])).join(' L') + 'Z';
+    }
+    return '<path d="' + d + '" fill="' + color + '"/>';
+  }
+  const L = [
+    { base: 215, amp: 105, freq: 1.0, oct: 4, swellFreq: 0.5, off: 3,  peaks: [{x:380,h:70,w:90},{x:900,h:55,w:80}], g: ['#a9bfb2','#86a08f'], snow: ['rgba(255,255,255,0.7)', 0.30] },
+    { base: 262, amp: 100, freq: 1.2, oct: 5, swellFreq: 0.7, off: 11, peaks: [{x:700,h:65,w:100}],                 g: ['#4f7766','#37594a'], snow: ['rgba(240,247,242,0.9)', 0.22] },
+    { base: 305, amp: 60,  freq: 1.8, oct: 4, swellFreq: 1.0, off: 19, peaks: [{x:200,h:30,w:120},{x:1020,h:34,w:120}], g: ['#1e3a2f','#12261d'] }
+  ];
+  let defs = '<linearGradient id="dc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b201b"/><stop offset="0.45" stop-color="#25503f"/><stop offset="0.72" stop-color="#d9b866"/><stop offset="1" stop-color="#f4dca3"/></linearGradient>'
+    + '<radialGradient id="dc-sun" cx="0.74" cy="0.66" r="0.4"><stop offset="0" stop-color="#fff3cc" stop-opacity="0.95"/><stop offset="0.35" stop-color="#f3c773" stop-opacity="0.4"/><stop offset="1" stop-color="#f3c773" stop-opacity="0"/></radialGradient>'
+    + '<linearGradient id="dc-mist" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e6f0e8" stop-opacity="0"/><stop offset="0.6" stop-color="#e6f0e8" stop-opacity="0.3"/><stop offset="1" stop-color="#e6f0e8" stop-opacity="0"/></linearGradient>'
+    + '<linearGradient id="dc-fade" x1="0" y1="0" x2="0" y2="1"><stop offset="0.6" stop-color="#050c08" stop-opacity="0"/><stop offset="1" stop-color="#050c08" stop-opacity="0.55"/></linearGradient>';
+  let body = '<rect width="' + W + '" height="' + H + '" fill="url(#dc-sky)"/>';
+  for(let i = 0; i < 26; i++) body += '<circle cx="' + f(rnd()*W) + '" cy="' + f(rnd()*90) + '" r="' + (0.6 + rnd()).toFixed(1) + '" fill="#fff" opacity="' + (0.25 + rnd()*0.5).toFixed(2) + '"/>';
+  body += '<rect width="' + W + '" height="' + H + '" fill="url(#dc-sun)"/>';
+  L.forEach((l, i) => {
+    const pts = ridge(l);
+    defs += '<linearGradient id="dc-g' + i + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="' + l.g[0] + '"/><stop offset="1" stop-color="' + l.g[1] + '"/></linearGradient>';
+    body += '<path d="' + area(pts) + '" fill="url(#dc-g' + i + ')"/>';
+    if(l.snow){ const top = Math.min.apply(null, pts.map(p => p[1])); body += snow(pts, top + (l.base - top)*l.snow[1], l.snow[0]); }
+    if(i === 2) body += pines(pts, '#0b1a13', 14, 30, 15);
+    if(i < 2) body += '<rect x="0" y="' + (l.base - 40) + '" width="' + W + '" height="90" fill="url(#dc-mist)"/>';
+  });
+  body += '<rect width="' + W + '" height="' + H + '" fill="url(#dc-fade)"/>';
+  return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><defs>' + defs + '</defs>' + body + '</svg>';
+}
+
+let defaultCoverSvg = null;
+function getDefaultCover(){ return defaultCoverSvg || (defaultCoverSvg = buildCoverScene()); }
+
+// Shrinks big phone photos (usually 3-8 MB) to a web-sized JPEG before uploading. Falls back to the original file if the browser can't.
+async function prepareImageForUpload(file, maxWidth, quality){
+  try{
+    if(typeof createImageBitmap !== "function") return file;
+    if(file.type === "image/gif" || file.type === "image/svg+xml") return file;
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, maxWidth / bmp.width);
+    if(scale === 1 && file.size < 900*1024){ if(bmp.close) bmp.close(); return file; }
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bmp.width * scale);
+    canvas.height = Math.round(bmp.height * scale);
+    const ctx = canvas.getContext("2d");
+    if(!ctx){ if(bmp.close) bmp.close(); return file; }
+    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    if(bmp.close) bmp.close();
+    const blob = await new Promise(res => canvas.toBlob(res, "image/jpeg", quality));
+    return blob || file;
+  }catch(err){ return file; }
+}
+
+function renderProfileCover(coverUrl, editable){
+  const media = coverUrl
+    ? `<img class="profile-cover-img" src="${esc(coverUrl)}" alt="Cover photo" data-view-photo="${esc(coverUrl)}">`
+    : getDefaultCover();
+  const edit = editable
+    ? `<label class="cover-edit-btn" title="${coverUrl ? "Change cover photo" : "Add a cover photo"}">${icon("camera",16)}<span>${coverUrl ? "Change cover" : "Add cover photo"}</span><input type="file" id="cover-input" accept="image/*"></label>`
+    : ``;
+  return `<div class="profile-cover ${coverUrl ? "has-img" : "is-default"}">${media}${edit}</div>`;
+}
+
+async function uploadCoverFromInput(inputEl){
+  const file = inputEl.files && inputEl.files[0];
+  if(!file) return;
+  const looksLikeImage = file.type ? /^image\//.test(file.type) : /\.(jpe?g|png|webp|gif|heic|heif)$/i.test(file.name || "");
+  if(!looksLikeImage){ showToast("Please choose an image file."); inputEl.value = ""; return; }
+  if(file.size > 15*1024*1024){ showToast("That photo is over 15 MB. Please choose a smaller one."); inputEl.value = ""; return; }
+  showToast("Uploading cover photo…");
+  const prepared = await prepareImageForUpload(file, 1600, 0.86);
+  const converted = prepared !== file;
+  const ext = converted ? "jpg" : ((file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g,"") || "jpg");
+  const path = `${state.user.id}/cover.${ext}`;
+  const { error: upErr } = await sb.storage.from("climb-photos").upload(path, prepared, { upsert: true, contentType: converted ? "image/jpeg" : (file.type || undefined) });
+  if(upErr){ showToast("Could not upload cover photo: "+upErr.message); return; }
+  const { data } = sb.storage.from("climb-photos").getPublicUrl(path);
+  const url = data.publicUrl + "?t=" + Date.now();
+  const { error } = await sb.from("profiles").update({ cover_url: url }).eq("id", state.user.id);
+  if(error){ showToast("Could not save cover photo: "+error.message); return; }
+  state.profile.cover_url = url;
+  render();
+  showToast("Cover photo updated.");
 }
 
 async function uploadAvatarFromInput(inputEl){
@@ -3051,6 +3218,10 @@ app.addEventListener("input", (e)=>{
 app.addEventListener("change", (e)=>{
   if(e.target.id === "avatar-input"){
     uploadAvatarFromInput(e.target);
+    return;
+  }
+  if(e.target.id === "cover-input"){
+    uploadCoverFromInput(e.target);
     return;
   }
   if(e.target.id === "sort-select"){
