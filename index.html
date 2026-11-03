@@ -499,6 +499,41 @@ body.auth-mode #app{position:relative; z-index:1;}
 .fb-bottomnav{display:none;}
 html.chat-fullscreen, html.chat-fullscreen body{overflow:hidden; overscroll-behavior:none;}
 
+/* ===== Group chats ===== */
+.group-avatar{width:40px; height:40px; border-radius:50%; background:var(--moss); color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.group-avatar.sm{width:28px; height:28px;}
+.chat-newgroup{display:flex; align-items:center; justify-content:center; gap:8px; margin:0 10px 8px; padding:9px 12px; border:1px dashed rgba(0,0,0,0.3); border-radius:10px; background:transparent; color:var(--ink); font-size:13px; font-weight:600; cursor:pointer; flex-shrink:0;}
+.chat-newgroup:hover{background:rgba(0,0,0,0.05);}
+.gw-text{display:flex; flex-direction:column; min-width:0; line-height:1.15;}
+.gw-text > span{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.gw-sub{font-family:'Inter',sans-serif; font-size:10.5px; font-weight:400; opacity:0.8; letter-spacing:0;}
+.chat-hbtn.on{background:rgba(242,233,208,0.22);}
+.gm-sender{font-size:11px; font-weight:700; color:var(--moss-d); margin-bottom:2px;}
+.group-composer{max-width:430px;}
+.gc-chips{display:flex; flex-wrap:wrap; gap:6px; margin:0 0 8px;}
+.gc-chip{display:inline-flex; align-items:center; gap:4px; background:var(--moss-tint); color:var(--moss-d); border-radius:20px; padding:4px 6px 4px 10px; font-size:12px; font-weight:600;}
+.gc-chip button{border:none; background:none; padding:2px; cursor:pointer; color:inherit; display:flex;}
+.gc-list{max-height:220px; overflow-y:auto; border:1px solid rgba(0,0,0,0.14); border-radius:10px; margin-bottom:14px; background:#fffdf4;}
+.gc-row{display:flex; align-items:center; gap:10px; padding:8px 10px; cursor:pointer;}
+.gc-row:hover{background:rgba(0,0,0,0.05);}
+.gc-row.on{background:var(--moss-tint);}
+.gc-name{flex:1; font-size:13.5px; font-weight:600; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.gc-check{width:20px; display:flex; justify-content:center; color:var(--moss-d);}
+.group-info{flex:1; overflow-y:auto; padding:14px 12px; background:var(--canvas); min-height:0;}
+.gi-section{margin-bottom:18px;}
+.gi-section h5{margin:0 0 8px; font-family:'Inter',sans-serif; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--ink-soft);}
+.gi-title{font-family:'Oswald',sans-serif; font-size:17px; font-weight:600;}
+.group-info .fine{font-size:12px; color:var(--ink-soft);}
+.gi-name-row{display:flex; gap:6px;}
+.gi-input{min-width:0; flex:1; border:1px solid rgba(0,0,0,0.15); border-radius:8px; background:#fffdf4; padding:8px 10px; font-size:13px; color:var(--ink); font-family:'Inter',sans-serif;}
+.gi-input:focus{outline:none; border-color:var(--rust); box-shadow:0 0 0 3px rgba(181,80,46,0.12);}
+.gi-name-row .btn{padding:8px 14px;}
+.gi-member{display:flex; align-items:center; gap:10px; padding:6px 0; font-size:13.5px;}
+.gi-mname{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600;}
+.gi-x{width:28px; height:28px; border-radius:50%; border:none; background:transparent; color:var(--ink-soft); display:flex; align-items:center; justify-content:center; cursor:pointer; padding:0; flex-shrink:0;}
+.gi-x:hover{background:rgba(0,0,0,0.08); color:var(--brick);}
+.gi-leave{display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:10px; border:1px solid var(--brick); border-radius:10px; background:transparent; color:var(--brick); font-weight:700; font-size:13px; cursor:pointer;}
+.gi-leave:hover{background:var(--brick-tint);}
 /* ===== Messenger dock: conversation list + floating chat windows ===== */
 .chat-dock{position:fixed; bottom:0; right:18px; z-index:55; display:flex; flex-direction:row-reverse; align-items:flex-end; gap:12px; pointer-events:none;}
 .chat-dock > *{pointer-events:auto;}
@@ -635,6 +670,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let MOUNTAINS = []; // loaded from Supabase at runtime
 let messagesChannel = null;
+let groupsChannel = null;
 
 function parseMaslNum(raw){
   const cleaned = String(raw).replace(/[~\s]/g,"").replace(/(\d),(\d)/g,"$1$2");
@@ -1087,7 +1123,7 @@ function badgeSVG(m, size){
   </svg>`;
 }
 
-let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null, reports:[], following:new Set(), feedFilter:"all", replyingTo:null, conversations:[], messenger:{open:false, search:""}, chatWindows:[], unreadMessageCount:0, showBulkImport:false, people:[], peopleSearch:"", peopleLoaded:false, accountMenuOpen:false, globalSearch:"", composerText:"", composerMountain:"", composerPhotos:[], posting:false, postProgress:"", gallery:null };
+let state = { view:"log", user:null, profile:null, authMode:"signin", authError:null, authLoading:false, hiked:new Set(), hikedDates:{}, hikedNotes:{}, hikedPhotos:{}, leaderboard:[], loading:true, editingId:null, search:"", sort:"groups", region:"all", status:"all", addingMountain:false, toast:null, rankRegion:"all", rankActive:"all", modal:null, celebration:null, lightboxUrl:null, expandedGroups:new Set(), visibleCounts:{}, feedPosts:[], expandedComments:new Set(), feedLoaded:false, viewingProfile:null, profileReturnView:"feed", notificationCount:0, lastSeenNotifications:null, reports:[], following:new Set(), feedFilter:"all", replyingTo:null, conversations:[], messenger:{open:false, search:""}, chatWindows:[], unreadMessageCount:0, showBulkImport:false, people:[], peopleSearch:"", peopleLoaded:false, accountMenuOpen:false, globalSearch:"", composerText:"", composerMountain:"", composerPhotos:[], posting:false, postProgress:"", gallery:null, groups:[], groupComposer:null, unreadDm:0, unreadGroups:0 };
 const app = document.getElementById("app");
 
 const HEX = {
@@ -1303,6 +1339,10 @@ async function handleModalConfirm(){
 
   } else if(modal.action === "delete-post"){
     await deletePostById(modal.payload);
+  } else if(modal.action === "leave-group"){
+    await leaveGroup(modal.payload);
+  } else if(modal.action === "remove-group-member"){
+    await removeGroupMember(modal.payload, modal.extra);
   }
   state.modal = null;
   render();
@@ -1730,7 +1770,7 @@ async function loadConversations(){
     .select("id, sender_id, recipient_id, content, created_at, read_at")
     .or(`sender_id.eq.${state.user.id},recipient_id.eq.${state.user.id}`)
     .order("created_at", { ascending:false });
-  if(error){ state.conversations = []; state.unreadMessageCount = 0; return; }
+  if(error){ state.conversations = []; state.unreadDm = 0; recomputeUnread(); return; }
   const byPartner = {};
   (data||[]).forEach(m=>{
     const partnerId = m.sender_id === state.user.id ? m.recipient_id : m.sender_id;
@@ -1753,7 +1793,8 @@ async function loadConversations(){
   }));
   list.sort((a,b)=> new Date(b.lastMessage.created_at) - new Date(a.lastMessage.created_at));
   state.conversations = list;
-  state.unreadMessageCount = list.reduce((s,c)=>s+c.unread,0);
+  state.unreadDm = list.reduce((s,c)=>s+c.unread,0);
+  recomputeUnread();
 }
 
 // ---- Messenger: conversation list + floating chat windows ----
@@ -1783,6 +1824,203 @@ window.addEventListener("resize", () => { if(!isMobileView()) document.documentE
 function findChat(pid){ return state.chatWindows.find(x=>x.partnerId===pid); }
 function focusChatInput(pid){ const el = document.getElementById("chat-input-"+pid); if(el) el.focus({preventScroll:true}); }
 
+// ---- Group chats (hiking plans) ----
+function recomputeUnread(){ state.unreadMessageCount = (state.unreadDm || 0) + (state.unreadGroups || 0); }
+function groupActivity(g){ return new Date(g.lastMessage ? g.lastMessage.created_at : g.createdAt).getTime() || 0; }
+function sortGroups(){ state.groups.sort((a,b) => groupActivity(b) - groupActivity(a)); }
+function recountGroupUnread(){ state.unreadGroups = state.groups.reduce((s,g) => s + g.unread, 0); recomputeUnread(); }
+
+async function loadGroups(){
+  const { data: mine, error } = await sb.from("chat_group_members")
+    .select("group_id, role, last_read_at, chat_groups(id, name, created_by, created_at)")
+    .eq("user_id", state.user.id);
+  if(error || !mine){ state.groups = []; state.unreadGroups = 0; recomputeUnread(); return; }
+  const rows = mine.filter(r => r.chat_groups);
+  const ids = rows.map(r => r.group_id);
+  let members = [], msgs = [];
+  if(ids.length){
+    const mRes = await sb.from("chat_group_members").select("group_id, user_id, role, joined_at, profiles(display_name, avatar_url)").in("group_id", ids);
+    members = mRes.data || [];
+    const gRes = await sb.from("chat_group_messages").select("id, group_id, sender_id, content, created_at").in("group_id", ids).order("created_at", { ascending:false }).limit(300);
+    msgs = gRes.data || [];
+  }
+  state.groups = rows.map(r => {
+    const g = r.chat_groups, gm = msgs.filter(m => m.group_id === g.id);
+    const lastRead = new Date(r.last_read_at || 0).getTime();
+    return {
+      id: g.id, name: g.name, createdBy: g.created_by, createdAt: g.created_at, myRole: r.role,
+      members: members.filter(m => m.group_id === g.id).map(m => ({ userId: m.user_id, role: m.role, joinedAt: m.joined_at, name: m.profiles ? m.profiles.display_name : "Hiker", avatar: m.profiles ? m.profiles.avatar_url : null })),
+      lastMessage: gm[0] || null,
+      unread: gm.filter(m => m.sender_id !== state.user.id && new Date(m.created_at).getTime() > lastRead).length
+    };
+  });
+  sortGroups(); recountGroupUnread();
+}
+async function refreshMessenger(){ await Promise.all([loadConversations(), loadGroups()]); }
+
+async function openGroupChat(gid){
+  const key = "g:" + gid;
+  const g = state.groups.find(x => x.id === gid);
+  let w = findChat(key);
+  if(w){
+    w.minimized = false;
+    state.chatWindows = state.chatWindows.filter(x => x !== w).concat([w]);
+  } else {
+    w = { partnerId: key, isGroup: true, groupId: gid, partnerName: g ? g.name : "Group", partnerAvatar: null, messages: [], minimized: false, draft: "", loaded: false, view: "chat", addSearch: "" };
+    state.chatWindows.push(w);
+    const maxWindows = isMobileView() ? 1 : 3;
+    while(state.chatWindows.length > maxWindows) state.chatWindows.shift();
+  }
+  if(isMobileView()) state.messenger.open = false;
+  render();
+  focusChatInput(key);
+  await refreshGroupChat(w);
+}
+async function refreshGroupChat(w){
+  const { data } = await sb.from("chat_group_messages").select("id, group_id, sender_id, content, created_at").eq("group_id", w.groupId).order("created_at", { ascending:false }).limit(500);
+  w.messages = (data || []).slice().reverse();
+  w.loaded = true;
+  if(!state.chatWindows.includes(w)) return;
+  render();
+  if(!w.minimized) await markGroupRead(w);
+}
+async function markGroupRead(w, force){
+  const g = state.groups.find(x => x.id === w.groupId);
+  if(!g || (g.unread === 0 && !force)) return;
+  g.unread = 0; recountGroupUnread(); render();
+  await sb.rpc("mark_chat_group_read", { gid: w.groupId });
+}
+async function sendGroupMessage(w){
+  const input = document.getElementById("chat-input-" + w.partnerId);
+  const content = (input ? input.value : (w.draft || "")).trim();
+  if(!content) return;
+  if(content.length > 2000){ showToast("Messages can be up to 2000 characters."); return; }
+  w.draft = ""; if(input) input.value = "";
+  const { data, error } = await sb.from("chat_group_messages").insert({ group_id: w.groupId, sender_id: state.user.id, content }).select().single();
+  if(error){ showToast("Could not send message: " + error.message); w.draft = content; render(); return; }
+  if(!w.messages.some(m => m.id === data.id)) w.messages.push(data);
+  const g = state.groups.find(x => x.id === w.groupId);
+  if(g){ g.lastMessage = data; sortGroups(); }
+  render(); focusChatInput(w.partnerId);
+}
+async function handleIncomingGroupMessage(msg){
+  if(!msg || !msg.group_id) return;
+  let g = state.groups.find(x => x.id === msg.group_id);
+  if(!g){ await loadGroups(); g = state.groups.find(x => x.id === msg.group_id); if(!g){ render(); return; } }
+  const w = findChat("g:" + msg.group_id);
+  if(w && !w.messages.some(m => m.id === msg.id)) w.messages.push(msg);
+  if(!g.lastMessage || new Date(msg.created_at) >= new Date(g.lastMessage.created_at)) g.lastMessage = msg;
+  sortGroups();
+  if(msg.sender_id === state.user.id){ render(); return; }
+  if(w && !w.minimized){ render(); await markGroupRead(w, true); return; }
+  g.unread++; recountGroupUnread(); render();
+}
+
+function openGroupComposer(){
+  state.groupComposer = { name: "", search: "", selected: [], busy: false };
+  render();
+  const el = document.getElementById("gc-name"); if(el) el.focus();
+}
+function toggleGroupMember(uid){
+  const gc = state.groupComposer; if(!gc) return;
+  const i = gc.selected.indexOf(uid);
+  if(i >= 0) gc.selected.splice(i, 1);
+  else if(gc.selected.length >= 29){ showToast("A group can have at most 30 people."); return; }
+  else gc.selected.push(uid);
+  render();
+}
+async function createGroupFromComposer(){
+  const gc = state.groupComposer; if(!gc || gc.busy) return;
+  const nameEl = document.getElementById("gc-name");
+  const name = (nameEl ? nameEl.value : gc.name).trim();
+  gc.name = name;
+  if(!name){ showToast("Give your group a name."); return; }
+  if(gc.selected.length < 1){ showToast("Pick at least one hiker to add."); return; }
+  gc.busy = true; render();
+  const { data, error } = await sb.rpc("create_chat_group", { group_name: name, member_ids: gc.selected.slice() });
+  if(error){ gc.busy = false; render(); showToast("Could not create the group: " + error.message); return; }
+  state.groupComposer = null;
+  await loadGroups();
+  await openGroupChat(data);
+}
+async function renameGroup(gid){
+  const input = document.getElementById("gi-rename-" + gid);
+  const name = input ? input.value.trim() : "";
+  if(!name){ showToast("Group name can't be empty."); return; }
+  if(name.length > 60){ showToast("Group name must be 60 characters or fewer."); return; }
+  const { error } = await sb.rpc("rename_chat_group", { gid, new_name: name });
+  if(error){ showToast("Could not rename: " + error.message); return; }
+  await loadGroups();
+  const w = findChat("g:" + gid), g = state.groups.find(x => x.id === gid);
+  if(w && g) w.partnerName = g.name;
+  render(); showToast("Group renamed.");
+}
+async function addGroupMember(gid, uid){
+  const { error } = await sb.rpc("add_chat_group_members", { gid, member_ids: [uid] });
+  if(error){ showToast("Could not add: " + error.message); return; }
+  await loadGroups(); render(); showToast("Added to the group.");
+}
+async function removeGroupMember(gid, uid){
+  const { error } = await sb.rpc("remove_chat_group_member", { gid, target: uid });
+  if(error){ showToast("Could not remove: " + error.message); return; }
+  await loadGroups(); showToast("Removed from the group.");
+}
+async function leaveGroup(gid){
+  const { error } = await sb.rpc("remove_chat_group_member", { gid, target: state.user.id });
+  if(error){ showToast("Could not leave the group: " + error.message); return; }
+  state.chatWindows = state.chatWindows.filter(w => w.partnerId !== "g:" + gid);
+  await loadGroups(); showToast("You left the group.");
+}
+
+function renderGroupComposer(){
+  const gc = state.groupComposer;
+  if(!gc) return "";
+  const q = (gc.search || "").trim().toLowerCase();
+  const people = state.people || [];
+  const pool = people.filter(p => !q || p.name.toLowerCase().includes(q));
+  const chips = gc.selected.map(id => { const p = people.find(x => x.id === id); return `<span class="gc-chip">${esc(p ? p.name : "Hiker")}<button type="button" data-action="gc-toggle" data-user="${id}" aria-label="Remove ${esc(p ? p.name : "hiker")}">${icon("x",12)}</button></span>`; }).join("");
+  const rows = pool.slice(0, 60).map(p => { const on = gc.selected.includes(p.id); return `<div class="gc-row ${on ? "on" : ""}" data-action="gc-toggle" data-user="${p.id}">${renderAvatar(p.name, p.avatarUrl, 34)}<span class="gc-name">${esc(p.name)}</span><span class="gc-check">${on ? icon("check",16) : ""}</span></div>`; }).join("")
+    || `<div class="chat-empty">${people.length ? `No hikers match "${esc(gc.search)}".` : "No other hikers to add yet."}</div>`;
+  return `<div class="modal-backdrop"><div class="modal-box group-composer">
+    <h3 style="margin-bottom:12px;">New group chat</h3>
+    <label class="modal-field-label">Group name</label>
+    <input type="text" id="gc-name" maxlength="60" placeholder="e.g. Pulag weekend climb" value="${esc(gc.name)}" autocomplete="off">
+    <label class="modal-field-label">Add hikers · ${gc.selected.length} selected</label>
+    ${chips ? `<div class="gc-chips">${chips}</div>` : ``}
+    <input type="text" id="gc-search" placeholder="Search people" value="${esc(gc.search)}" autocomplete="off" style="margin-bottom:8px;">
+    <div class="gc-list" data-keep-scroll="gc-list">${rows}</div>
+    <div class="modal-actions">
+      <button class="toggle-btn" data-action="gc-cancel">Cancel</button>
+      <button class="btn" data-action="gc-create" ${gc.busy ? "disabled" : ""}>${gc.busy ? "Creating…" : "Create group"}</button>
+    </div>
+  </div></div>`;
+}
+
+function renderGroupInfo(w, g){
+  if(!g) return `<div class="group-info"><div class="chat-empty">You're no longer in this group.</div></div>`;
+  const iAmAdmin = g.myRole === "admin";
+  const q = (w.addSearch || "").trim().toLowerCase();
+  const candidates = (state.people || []).filter(p => !g.members.some(m => m.userId === p.id) && (!q || p.name.toLowerCase().includes(q))).slice(0, q ? 20 : 6);
+  return `<div class="group-info" data-keep-scroll="gi-${g.id}">
+    <div class="gi-section">
+      ${iAmAdmin
+        ? `<h5>Group name</h5><div class="gi-name-row"><input class="gi-input" id="gi-rename-${g.id}" maxlength="60" value="${esc(g.name)}" autocomplete="off"><button class="btn" data-action="group-rename" data-group="${g.id}">Save</button></div>`
+        : `<h5>Group</h5><div class="gi-title">${esc(g.name)}</div>`}
+      <p class="fine" style="margin:6px 0 0;">${g.members.length} ${g.members.length === 1 ? "person" : "people"} · started ${esc(formatDate((g.createdAt || "").slice(0,10)))}</p>
+    </div>
+    <div class="gi-section">
+      <h5>Members</h5>
+      ${g.members.slice().sort((a,b) => (b.role === "admin") - (a.role === "admin") || a.name.localeCompare(b.name)).map(m => `<div class="gi-member">${renderAvatar(m.name, m.avatar, 32)}<span class="gi-mname">${esc(m.name)}${m.userId === state.user.id ? " (you)" : ""}</span>${m.role === "admin" ? `<span class="admin-tag">admin</span>` : ``}${iAmAdmin && m.userId !== state.user.id ? `<button class="gi-x" data-action="group-remove" data-group="${g.id}" data-user="${m.userId}" data-name="${esc(m.name)}" title="Remove ${esc(m.name)}" aria-label="Remove ${esc(m.name)}">${icon("x",15)}</button>` : ``}</div>`).join("")}
+    </div>
+    ${iAmAdmin ? `<div class="gi-section">
+      <h5>Add people</h5>
+      <input class="gi-input" id="gi-add-search-${g.id}" placeholder="Search people" value="${esc(w.addSearch || "")}" autocomplete="off" style="width:100%; margin-bottom:6px;">
+      ${candidates.length ? candidates.map(p => `<div class="gi-member">${renderAvatar(p.name, p.avatarUrl, 32)}<span class="gi-mname">${esc(p.name)}</span><button class="fb-follow-btn" data-action="group-add" data-group="${g.id}" data-user="${p.id}">Add</button></div>`).join("") : `<div class="fine">${q ? "No one matches that search." : "Everyone is already in this group."}</div>`}
+    </div>` : ``}
+    <button class="gi-leave" data-action="group-leave" data-group="${g.id}">${icon("log-out",16)} Leave group</button>
+  </div>`;
+}
+
 async function openChat(partnerId, partnerName){
   let w = findChat(partnerId);
   if(w){
@@ -1801,6 +2039,7 @@ async function openChat(partnerId, partnerName){
 }
 
 async function refreshChat(w){
+  if(w.isGroup) return refreshGroupChat(w);
   const { data: profRow } = await sb.from("profiles").select("avatar_url").eq("id", w.partnerId).single();
   if(profRow) w.partnerAvatar = profRow.avatar_url;
   const { data } = await sb.from("direct_messages")
@@ -1818,6 +2057,7 @@ async function refreshChat(w){
 }
 
 async function markChatRead(w){
+  if(w.isGroup) return markGroupRead(w);
   const unread = w.messages.filter(m=>m.recipient_id===state.user.id && !m.read_at);
   for(const m of unread){
     m.read_at = new Date().toISOString();
@@ -1842,6 +2082,7 @@ async function toggleMinChat(pid){
 async function sendChatMessage(pid){
   const w = findChat(pid);
   if(!w) return;
+  if(w.isGroup) return sendGroupMessage(w);
   const input = document.getElementById("chat-input-"+pid);
   const content = (input ? input.value : (w.draft||"")).trim();
   if(!content) return;
@@ -1871,6 +2112,11 @@ function subscribeToMessages(){
       filter: `recipient_id=eq.${state.user.id}`
     }, (payload) => { handleIncomingMessage(payload.new); })
     .subscribe();
+  groupsChannel = sb
+    .channel("chat-groups-"+state.user.id)
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_group_messages" }, (payload) => { handleIncomingGroupMessage(payload.new); })
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_group_members", filter: `user_id=eq.${state.user.id}` }, async () => { await loadGroups(); render(); })
+    .subscribe();
 }
 
 async function handleIncomingMessage(msg){
@@ -1888,10 +2134,8 @@ async function handleIncomingMessage(msg){
 }
 
 function unsubscribeFromMessages(){
-  if(messagesChannel){
-    try{ sb.removeChannel(messagesChannel); }catch(e){}
-    messagesChannel = null;
-  }
+  [messagesChannel, groupsChannel].forEach(ch => { if(ch){ try{ sb.removeChannel(ch); }catch(e){} } });
+  messagesChannel = null; groupsChannel = null;
 }
 
 async function deletePostById(postId){
@@ -2122,6 +2366,8 @@ function render(){
   });
   const oldList = app.querySelector(".chat-list");
   const listTop = oldList ? oldList.scrollTop : 0;
+  const keepScroll = {};
+  app.querySelectorAll("[data-keep-scroll]").forEach(el => { keepScroll[el.dataset.keepScroll] = el.scrollTop; });
 
   const body = state.view==="log" ? renderLog()
     : state.view==="feed" ? renderFeed()
@@ -2133,6 +2379,7 @@ function render(){
   app.innerHTML = renderShell(body)
     + (state.toast ? `<div class="toast">${esc(state.toast)}</div>` : ``)
     + renderModal()
+    + renderGroupComposer()
     + renderCelebration()
     + (state.lightboxUrl ? `<div class="photo-lightbox"><img src="${esc(state.lightboxUrl)}"></div>` : ``)
     + renderGallery();
@@ -2143,6 +2390,7 @@ function render(){
   });
   const newList = app.querySelector(".chat-list");
   if(newList && listTop) newList.scrollTop = listTop;
+  app.querySelectorAll("[data-keep-scroll]").forEach(el => { const t = keepScroll[el.dataset.keepScroll]; if(t) el.scrollTop = t; });
   if(focusInfo){
     const el = document.getElementById(focusInfo.id);
     if(el){
@@ -2424,6 +2672,8 @@ const ICONS = {
   "award": '<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
   "chevron-up": '<path d="m18 15-6-6-6 6"/>',
   "chevron-down": '<path d="m6 9 6 6 6-6"/>',
+  "user-plus": '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/>',
+  "info": '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
   "chevron-left": '<path d="m15 18-6-6 6-6"/>',
   "chevron-right": '<path d="m9 18 6-6-6-6"/>',
   "image": '<rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
@@ -2585,21 +2835,28 @@ function renderBottomNav(){
 
 function renderMessengerPanel(){
   const open = state.messenger.open;
+  const firstName = id => { for(const g of (state.groups || [])){ const m = g.members.find(x => x.userId === id); if(m) return m.name.split(" ")[0]; } return "Someone"; };
+  const dmRow = cv => `<div class="chat-row ${cv.unread>0?'unread':''}" data-action="open-chat" data-user="${cv.partnerId}" data-name="${esc(cv.partnerName)}">${renderAvatar(cv.partnerName, cv.partnerAvatar, 40)}<div class="chat-row-main"><div class="chat-row-name">${esc(cv.partnerName)}</div><div class="chat-row-prev">${cv.lastMessage.sender_id===state.user.id ? "You: " : ""}${esc((cv.lastMessage.content||"").slice(0,48))} · ${timeAgo(cv.lastMessage.created_at)}</div></div>${cv.unread>0 ? `<span class="chat-dot"></span>` : ``}</div>`;
+  const personRow = p => `<div class="chat-row" data-action="open-chat" data-user="${p.id}" data-name="${esc(p.name)}">${renderAvatar(p.name, p.avatarUrl, 40)}<div class="chat-row-main"><div class="chat-row-name">${esc(p.name)}</div><div class="chat-row-prev">${p.peakCount} peak${p.peakCount!==1?'s':''} badged</div></div></div>`;
+  const groupRow = g => `<div class="chat-row ${g.unread>0?'unread':''}" data-action="open-group" data-group="${g.id}"><div class="group-avatar">${icon("users",20)}</div><div class="chat-row-main"><div class="chat-row-name">${esc(g.name)}</div><div class="chat-row-prev">${g.lastMessage ? `${g.lastMessage.sender_id===state.user.id ? "You" : esc(firstName(g.lastMessage.sender_id))}: ${esc((g.lastMessage.content||"").slice(0,40))} · ${timeAgo(g.lastMessage.created_at)}` : `${g.members.length} people · no messages yet`}</div></div>${g.unread>0 ? `<span class="chat-dot"></span>` : ``}</div>`;
   let body = "";
   if(open){
     const q = (state.messenger.search||"").trim().toLowerCase();
     let rows;
     if(q){
+      const gm = (state.groups||[]).filter(g => g.name.toLowerCase().includes(q));
       const ppl = (state.people||[]).filter(p=>p.name.toLowerCase().includes(q)).slice(0,8);
-      rows = ppl.length ? ppl.map(p=>`<div class="chat-row" data-action="open-chat" data-user="${p.id}" data-name="${esc(p.name)}">${renderAvatar(p.name, p.avatarUrl, 40)}<div class="chat-row-main"><div class="chat-row-name">${esc(p.name)}</div><div class="chat-row-prev">${p.peakCount} peak${p.peakCount!==1?'s':''} badged</div></div></div>`).join("")
-        : `<div class="chat-empty">No hikers match "${esc(state.messenger.search)}".</div>`;
-    } else if(state.conversations && state.conversations.length){
-      rows = state.conversations.map(cv=>`<div class="chat-row ${cv.unread>0?'unread':''}" data-action="open-chat" data-user="${cv.partnerId}" data-name="${esc(cv.partnerName)}">${renderAvatar(cv.partnerName, cv.partnerAvatar, 40)}<div class="chat-row-main"><div class="chat-row-name">${esc(cv.partnerName)}</div><div class="chat-row-prev">${cv.lastMessage.sender_id===state.user.id ? "You: " : ""}${esc((cv.lastMessage.content||"").slice(0,48))} · ${timeAgo(cv.lastMessage.created_at)}</div></div>${cv.unread>0 ? `<span class="chat-dot"></span>` : ``}</div>`).join("");
+      rows = gm.map(groupRow).join("") + ppl.map(personRow).join("") || `<div class="chat-empty">No hikers or groups match "${esc(state.messenger.search)}".</div>`;
     } else {
-      rows = `<div class="chat-empty">No chats yet.<br>Search for a hiker above to say hello.</div>`;
+      const items = []
+        .concat((state.conversations||[]).map(cv => ({ t: new Date(cv.lastMessage.created_at).getTime(), html: dmRow(cv) })))
+        .concat((state.groups||[]).map(g => ({ t: groupActivity(g), html: groupRow(g) })))
+        .sort((a,b) => b.t - a.t);
+      rows = items.length ? items.map(i => i.html).join("") : `<div class="chat-empty">No chats yet.<br>Search for a hiker above to say hello, or start a group chat to plan a climb.</div>`;
     }
     body = `<div class="chat-panel-body">
-      <div class="chat-panel-search"><input type="text" id="messenger-search" placeholder="Search people" value="${esc(state.messenger.search||"")}" autocomplete="off"></div>
+      <div class="chat-panel-search"><input type="text" id="messenger-search" placeholder="Search people or groups" value="${esc(state.messenger.search||"")}" autocomplete="off"></div>
+      <button class="chat-newgroup" data-action="new-group">${icon("user-plus",16)} New group chat</button>
       <div class="chat-list">${rows}</div>
     </div>`;
   }
@@ -2612,19 +2869,42 @@ function renderMessengerPanel(){
 }
 
 function renderChatWindow(w){
-  const msgs = w.messages.map(m=>`<div class="dm-bubble ${m.sender_id===state.user.id?'mine':'theirs'}"><div class="dm-text">${esc(m.content)}</div><div class="dm-time">${timeAgo(m.created_at)}</div></div>`).join("")
-    || `<div class="chat-empty">${w.loaded ? `Say hello to ${esc(w.partnerName)}!` : `Loading…`}</div>`;
-  const unreadHere = w.messages.filter(m=>m.recipient_id===state.user.id && !m.read_at).length;
-  return `<section class="chat-win ${w.minimized?'min':''}" data-chat="${w.partnerId}">
-    <header class="chat-win-head" data-action="toggle-min-chat" data-user="${w.partnerId}">
-      <div class="chat-win-who">${renderAvatar(w.partnerName, w.partnerAvatar, 28)}<span>${esc(w.partnerName)}</span>${w.minimized ? badgeCount(unreadHere) : ``}</div>
-      <button class="chat-hbtn" data-action="toggle-min-chat" data-user="${w.partnerId}" title="${w.minimized?'Expand':'Minimize'}">${icon("minus",18)}</button>
-      <button class="chat-hbtn" data-action="close-chat" data-user="${w.partnerId}" title="Close">${icon("x",18)}</button>
+  const isG = !!w.isGroup;
+  const g = isG ? state.groups.find(x => x.id === w.groupId) : null;
+  const key = w.partnerId;
+  let msgs, unreadHere;
+  if(isG){
+    const nameOf = id => { const m = g && g.members.find(x => x.userId === id); return m ? m.name : "Former member"; };
+    let prev = null;
+    msgs = w.messages.map(m => {
+      const mine = m.sender_id === state.user.id;
+      const showName = !mine && (!prev || prev.sender_id !== m.sender_id || (new Date(m.created_at) - new Date(prev.created_at)) > 5*60000);
+      prev = m;
+      return `<div class="dm-bubble ${mine?'mine':'theirs'}">${showName ? `<div class="gm-sender">${esc(nameOf(m.sender_id))}</div>` : ``}<div class="dm-text">${esc(m.content)}</div><div class="dm-time">${timeAgo(m.created_at)}</div></div>`;
+    }).join("") || `<div class="chat-empty">${w.loaded ? `No messages yet.<br>Say hello and start planning the climb!` : `Loading…`}</div>`;
+    unreadHere = g ? g.unread : 0;
+  } else {
+    msgs = w.messages.map(m=>`<div class="dm-bubble ${m.sender_id===state.user.id?'mine':'theirs'}"><div class="dm-text">${esc(m.content)}</div><div class="dm-time">${timeAgo(m.created_at)}</div></div>`).join("")
+      || `<div class="chat-empty">${w.loaded ? `Say hello to ${esc(w.partnerName)}!` : `Loading…`}</div>`;
+    unreadHere = w.messages.filter(m=>m.recipient_id===state.user.id && !m.read_at).length;
+  }
+  const title = isG ? (g ? g.name : w.partnerName) : w.partnerName;
+  const who = isG
+    ? `<div class="chat-win-who"><div class="group-avatar sm">${icon("users",16)}</div><div class="gw-text"><span>${esc(title)}</span><small class="gw-sub">${g ? g.members.length : "…"} people</small></div>${w.minimized ? badgeCount(unreadHere) : ``}</div>`
+    : `<div class="chat-win-who">${renderAvatar(w.partnerName, w.partnerAvatar, 28)}<span>${esc(w.partnerName)}</span>${w.minimized ? badgeCount(unreadHere) : ``}</div>`;
+  const infoBtn = isG ? `<button class="chat-hbtn ${w.view === "info" ? "on" : ""}" data-action="group-info" data-user="${key}" title="Group info and members" aria-label="Group info">${icon("info",18)}</button>` : ``;
+  const showInfo = isG && w.view === "info";
+  return `<section class="chat-win ${w.minimized?'min':''}" data-chat="${key}">
+    <header class="chat-win-head" data-action="toggle-min-chat" data-user="${key}">
+      ${who}
+      ${infoBtn}
+      <button class="chat-hbtn" data-action="toggle-min-chat" data-user="${key}" title="${w.minimized?'Expand':'Minimize'}">${icon("minus",18)}</button>
+      <button class="chat-hbtn" data-action="close-chat" data-user="${key}" title="Close">${icon("x",18)}</button>
     </header>
-    ${w.minimized ? `` : `<div class="chat-body" data-chat-body="${w.partnerId}">${msgs}</div>
+    ${w.minimized ? `` : showInfo ? renderGroupInfo(w, g) : `<div class="chat-body" data-chat-body="${key}">${msgs}</div>
     <div class="chat-input-row">
-      <input type="text" class="chat-input" id="chat-input-${w.partnerId}" data-chat="${w.partnerId}" placeholder="Write a message…" value="${esc(w.draft||"")}" autocomplete="off">
-      <button class="chat-send" data-action="send-chat" data-user="${w.partnerId}" title="Send">${icon("send",16)}</button>
+      <input type="text" class="chat-input" id="chat-input-${key}" data-chat="${key}" maxlength="2000" placeholder="${isG ? "Message the group…" : "Write a message…"}" value="${esc(w.draft||"")}" autocomplete="off">
+      <button class="chat-send" data-action="send-chat" data-user="${key}" title="Send">${icon("send",16)}</button>
     </div>`}
   </section>`;
 }
@@ -3320,7 +3600,7 @@ async function submitNewPassword(){
 async function signOutUser(){
   await sb.auth.signOut();
   unsubscribeFromMessages();
-  state.chatWindows = []; state.messenger = { open:false, search:"" }; state.conversations = []; state.unreadMessageCount = 0; state.accountMenuOpen = false; state.gallery = null; clearComposer(); state.posting = false; state.postProgress = "";
+  state.chatWindows = []; state.messenger = { open:false, search:"" }; state.conversations = []; state.unreadMessageCount = 0; state.accountMenuOpen = false; state.gallery = null; clearComposer(); state.posting = false; state.postProgress = ""; state.groups = []; state.groupComposer = null; state.unreadDm = 0; state.unreadGroups = 0;
   state.user = null;
   state.profile = null;
   state.hiked = new Set();
@@ -3353,6 +3633,7 @@ async function handleSignedIn(user){
   await loadFollowing();
   await loadPeople();
   await loadConversations();
+  await loadGroups();
   await refreshNotificationCount();
   subscribeToMessages();
   state.authLoading = false;
@@ -3361,6 +3642,12 @@ async function handleSignedIn(user){
 }
 
 app.addEventListener("input", (e)=>{
+  if(e.target.id === "gc-name" && state.groupComposer){ state.groupComposer.name = e.target.value; }
+  if(e.target.id === "gc-search" && state.groupComposer){ state.groupComposer.search = e.target.value; render(); }
+  if(e.target.id && e.target.id.startsWith("gi-add-search-")){
+    const gw = findChat("g:" + e.target.id.slice("gi-add-search-".length));
+    if(gw){ gw.addSearch = e.target.value; render(); }
+  }
   if(e.target.id === "post-content"){ state.composerText = e.target.value; }
   if(e.target.id === "search-input"){
     state.search = e.target.value;
@@ -3529,6 +3816,32 @@ app.addEventListener("click", async (e)=>{
     return;
   }
 
+  if(e.target.closest('[data-action="new-group"]')){ openGroupComposer(); return; }
+  const gcToggle = e.target.closest('[data-action="gc-toggle"]');
+  if(gcToggle){ toggleGroupMember(gcToggle.dataset.user); return; }
+  if(e.target.closest('[data-action="gc-cancel"]')){ state.groupComposer = null; render(); return; }
+  if(e.target.closest('[data-action="gc-create"]')){ await createGroupFromComposer(); return; }
+  const openGroup = e.target.closest('[data-action="open-group"]');
+  if(openGroup){ await openGroupChat(openGroup.dataset.group); return; }
+  const groupInfoBtn = e.target.closest('[data-action="group-info"]');
+  if(groupInfoBtn){ const gw = findChat(groupInfoBtn.dataset.user); if(gw){ gw.view = gw.view === "info" ? "chat" : "info"; render(); } return; }
+  const groupRename = e.target.closest('[data-action="group-rename"]');
+  if(groupRename){ await renameGroup(groupRename.dataset.group); return; }
+  const groupAdd = e.target.closest('[data-action="group-add"]');
+  if(groupAdd){ await addGroupMember(groupAdd.dataset.group, groupAdd.dataset.user); return; }
+  const groupRemove = e.target.closest('[data-action="group-remove"]');
+  if(groupRemove){
+    const rg = state.groups.find(x => x.id === groupRemove.dataset.group);
+    state.modal = { kind: "confirm", message: `Remove ${groupRemove.dataset.name} from "${rg ? rg.name : "this group"}"?`, action: "remove-group-member", payload: groupRemove.dataset.group, extra: groupRemove.dataset.user, confirmLabel: "Remove" };
+    render(); return;
+  }
+  const groupLeave = e.target.closest('[data-action="group-leave"]');
+  if(groupLeave){
+    const lg = state.groups.find(x => x.id === groupLeave.dataset.group);
+    state.modal = { kind: "confirm", message: `Leave "${lg ? lg.name : "this group"}"? You won't see its messages unless someone adds you back.`, action: "leave-group", payload: groupLeave.dataset.group, confirmLabel: "Leave" };
+    render(); return;
+  }
+
   const gTile = e.target.closest("[data-gallery-post]");
   if(gTile){
     const gPost = state.feedPosts.find(p => p.id === gTile.dataset.galleryPost);
@@ -3566,7 +3879,7 @@ app.addEventListener("click", async (e)=>{
     if(tabBtn.dataset.tab === "messages"){
       state.messenger.open = !state.messenger.open;
       render();
-      if(state.messenger.open){ await loadConversations(); render(); }
+      if(state.messenger.open){ await refreshMessenger(); render(); }
       return;
     }
     state.view = tabBtn.dataset.tab;
@@ -3605,7 +3918,7 @@ app.addEventListener("click", async (e)=>{
   if(toggleMsgr){
     state.messenger.open = !state.messenger.open;
     render();
-    if(state.messenger.open){ await loadConversations(); render(); }
+    if(state.messenger.open){ await refreshMessenger(); render(); }
     return;
   }
 
@@ -3890,7 +4203,7 @@ app.addEventListener("click", async (e)=>{
     }
     if(event === "SIGNED_OUT"){
       unsubscribeFromMessages();
-      state.chatWindows = []; state.messenger = { open:false, search:"" }; state.conversations = []; state.unreadMessageCount = 0; state.accountMenuOpen = false; state.gallery = null; clearComposer(); state.posting = false; state.postProgress = "";
+      state.chatWindows = []; state.messenger = { open:false, search:"" }; state.conversations = []; state.unreadMessageCount = 0; state.accountMenuOpen = false; state.gallery = null; clearComposer(); state.posting = false; state.postProgress = ""; state.groups = []; state.groupComposer = null; state.unreadDm = 0; state.unreadGroups = 0;
       state.user = null;
       state.profile = null;
       state.hiked = new Set();
